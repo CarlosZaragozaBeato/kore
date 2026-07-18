@@ -1,6 +1,0 @@
-# Suunto-owned schema objects. Numbering continues the global sequence
-# (040/041 were consumed by oauth-token widening and api_subscription_key,
-# both runner-side); Suunto changesets start at 042.
-databaseChangeLog:
-  - include:
-      file: db/changelog/changes/042-create-suunto-workouts.yaml

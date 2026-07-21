@@ -104,23 +104,35 @@ Liquibase es la fuente de verdad del esquema.
 
 ---
 
-### Fase 2 — Integración con Suunto
+### Fase 2 — Integración con Suunto ✅ (completada, pendiente validar con credenciales reales)
 
 Objetivo: enriquecer el log con datos reales importados de Suunto.
 
-- [ ] Apartado **Settings** para habilitar la integración e introducir
-      `client-id`, `client-secret`, `refresh-token`. Migración
-      `003-suunto-integration` (001/002 ya usados por users/workouts).
-- [ ] Almacenamiento seguro de credenciales (cifrado en reposo).
-- [ ] Cliente OAuth: refresco de token y llamadas a la API de Suunto.
-- [ ] Sincronización de workouts: importar entrenos y mapearlos al modelo
-      interno (evitando duplicados — política de dedup por id de origen).
-- [ ] Marcar el origen de cada entreno (`manual` vs `suunto`).
-- [ ] Frontend: estado de la integración, sincronizar bajo demanda, ver
-      resultado del sync.
+- [x] Apartado **Ajustes** para habilitar la integración e introducir
+      `client-id`, `client-secret`, `refresh-token` **y `subscription-key`**
+      (la Cloud API de Suunto exige además esta 4ª credencial). Migración
+      `003-suunto-integration`.
+- [x] Almacenamiento seguro de credenciales (cifrado AES-GCM en reposo;
+      verificado que la BD no contiene los secretos en claro).
+- [x] Cliente OAuth (grant `refresh_token`, Basic auth) + cliente Cloud API
+      (`/v2/workouts` con Bearer + `Ocp-Apim-Subscription-Key`); guarda el
+      refresh token rotado.
+- [x] Sincronización de workouts: importa y mapea al modelo interno,
+      deduplicando por `sourceId` (id de origen).
+- [x] Cada entreno marca su origen (`MANUAL` vs `SUUNTO`).
+- [x] Frontend: página de Ajustes con estado, guardar credenciales y
+      "Sincronizar ahora" mostrando importados/omitidos/total.
 
-**Entregable:** conectas Suunto en Settings y tus entrenos reales aparecen en el
-log automáticamente.
+**Entregable:** ✅ conectas Suunto en Ajustes y sincronizas tus entrenos.
+Verificado con clientes REST mockeados (5 tests: sync importa+dedup, errores→502,
+sin config→400, sin sesión→401) y flujo de settings real (guardar/ocultar
+secretos, cifrado en reposo). **Pendiente:** validar contra credenciales/datos
+reales de Suunto los nombres de campo del workout (aislados en
+`SuuntoWorkout`/`SuuntoWorkoutMapper`) y el mapeo de `activityId` a tipo.
+
+**Nota sobre portabilidad:** las credenciales de Suunto NO se incluyen en el
+export/import de sesión (son específicas del dispositivo y sensibles); sí se
+exportan los entrenos ya sincronizados (son datos de entrenamiento).
 
 ---
 

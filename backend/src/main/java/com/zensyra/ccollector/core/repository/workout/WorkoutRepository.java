@@ -18,4 +18,8 @@ public class WorkoutRepository implements PanacheRepository<Workout> {
     public Optional<Workout> findByIdAndUser(Long id, Long userId) {
         return find("id = ?1 and userId = ?2", id, userId).firstResultOptional();
     }
+
+    public boolean existsBySourceId(Long userId, com.zensyra.ccollector.core.domain.workout.WorkoutSource source, String sourceId) {
+        return count("userId = ?1 and source = ?2 and sourceId = ?3", userId, source, sourceId) > 0;
+    }
 }

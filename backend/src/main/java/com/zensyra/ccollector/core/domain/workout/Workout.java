@@ -53,6 +53,10 @@ public class Workout {
     @Column(nullable = false)
     public WorkoutSource source;
 
+    /** Id del entreno en el origen (Suunto), para deduplicar. Null si es manual. */
+    @Column(name = "source_id")
+    public String sourceId;
+
     @Column(name = "created_at", nullable = false)
     public Instant createdAt;
 }

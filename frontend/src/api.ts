@@ -150,6 +150,41 @@ export function saveSuuntoSettings(req: SuuntoSettingsRequest): Promise<SuuntoSe
   }).then((r) => unwrap<SuuntoSettings>(r))
 }
 
+export interface PeriodSummary {
+  label: string
+  from: string
+  to: string
+  workouts: number
+  distanceMeters: number
+  durationSeconds: number
+  avgPaceSecondsPerKm: number | null
+  load: number
+}
+
+export interface Totals {
+  workouts: number
+  distanceMeters: number
+  durationSeconds: number
+  avgPaceSecondsPerKm: number | null
+  load: number
+}
+
+export interface Dashboard {
+  generatedAt: string
+  totals: Totals
+  weekly: PeriodSummary[]
+  monthly: PeriodSummary[]
+}
+
+export function getAnalytics(): Promise<Dashboard> {
+  return fetch(`${BASE}/analytics/summary`, { headers: headers(true) }).then((r) => {
+    if (!r.ok) {
+      throw new Error(`Error ${r.status}`)
+    }
+    return r.json() as Promise<Dashboard>
+  })
+}
+
 export function syncSuunto(): Promise<SyncResult> {
   // POST sin cuerpo: no enviamos Content-Type.
   const h: Record<string, string> = {}

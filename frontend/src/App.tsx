@@ -4,8 +4,9 @@ import { clearUsername, getUsername } from './session'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Settings from './pages/Settings'
+import Analytics from './pages/Analytics'
 
-type View = 'workouts' | 'settings'
+type View = 'workouts' | 'analytics' | 'settings'
 
 export default function App() {
   const [username, setUsername] = useState<string | null>(getUsername())
@@ -40,6 +41,9 @@ export default function App() {
           <button className={view === 'workouts' ? 'tab active' : 'tab'} onClick={() => setView('workouts')}>
             Entrenos
           </button>
+          <button className={view === 'analytics' ? 'tab active' : 'tab'} onClick={() => setView('analytics')}>
+            Análisis
+          </button>
           <button className={view === 'settings' ? 'tab active' : 'tab'} onClick={() => setView('settings')}>
             Ajustes
           </button>
@@ -63,7 +67,9 @@ export default function App() {
 
       {error && <p className="error">{error}</p>}
 
-      {view === 'workouts' ? <Home /> : <Settings />}
+      {view === 'workouts' && <Home />}
+      {view === 'analytics' && <Analytics />}
+      {view === 'settings' && <Settings />}
     </main>
   )
 }

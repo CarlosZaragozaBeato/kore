@@ -32,7 +32,7 @@ class SessionResourceTest {
         given().header(HEADER, user)
                 .when().get("/api/v1/session/export")
                 .then().statusCode(200)
-                .body("schemaVersion", is(2))
+                .body("schemaVersion", is(3))
                 .body("user.username", is(user))
                 .body("workouts.size()", is(1))
                 .body("workouts[0].distanceMeters", is(3000.0f));

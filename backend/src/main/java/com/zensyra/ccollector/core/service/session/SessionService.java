@@ -1,16 +1,28 @@
 package com.zensyra.ccollector.core.service.session;
 
 import com.zensyra.ccollector.core.domain.auth.CollectorUser;
+import com.zensyra.ccollector.core.domain.gym.Exercise;
+import com.zensyra.ccollector.core.domain.gym.Routine;
+import com.zensyra.ccollector.core.domain.gym.RoutineItem;
+import com.zensyra.ccollector.core.domain.gym.StrengthSession;
 import com.zensyra.ccollector.core.domain.plan.PlannedSession;
 import com.zensyra.ccollector.core.domain.plan.TrainingPlan;
 import com.zensyra.ccollector.core.domain.workout.Workout;
 import com.zensyra.ccollector.core.domain.workout.WorkoutSource;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportExercise;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportPlan;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportPlannedSession;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportRoutine;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportRoutineItem;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportStrengthSession;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportUser;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportWorkout;
 import com.zensyra.ccollector.core.repository.auth.UserRepository;
+import com.zensyra.ccollector.core.repository.gym.ExerciseRepository;
+import com.zensyra.ccollector.core.repository.gym.RoutineItemRepository;
+import com.zensyra.ccollector.core.repository.gym.RoutineRepository;
+import com.zensyra.ccollector.core.repository.gym.StrengthSessionRepository;
 import com.zensyra.ccollector.core.repository.plan.PlanRepository;
 import com.zensyra.ccollector.core.repository.plan.PlannedSessionRepository;
 import com.zensyra.ccollector.core.repository.workout.WorkoutRepository;
@@ -29,13 +41,23 @@ public class SessionService {
     private final WorkoutRepository workouts;
     private final PlanRepository plans;
     private final PlannedSessionRepository plannedSessions;
+    private final ExerciseRepository exercises;
+    private final RoutineRepository routines;
+    private final RoutineItemRepository routineItems;
+    private final StrengthSessionRepository strengthSessions;
 
     public SessionService(UserRepository users, WorkoutRepository workouts,
-                          PlanRepository plans, PlannedSessionRepository plannedSessions) {
+                          PlanRepository plans, PlannedSessionRepository plannedSessions,
+                          ExerciseRepository exercises, RoutineRepository routines,
+                          RoutineItemRepository routineItems, StrengthSessionRepository strengthSessions) {
         this.users = users;
         this.workouts = workouts;
         this.plans = plans;
         this.plannedSessions = plannedSessions;
+        this.exercises = exercises;
+        this.routines = routines;
+        this.routineItems = routineItems;
+        this.strengthSessions = strengthSessions;
     }
 
     /** Vuelca la sesión completa del usuario a un documento portable. */
@@ -54,12 +76,30 @@ public class SessionService {
                                         s.targetDurationSeconds, s.description))
                                 .toList()))
                 .toList();
+        var exportExercises = exercises.listByUser(user.id).stream()
+                .map(e -> new ExportExercise(e.name, e.muscleGroup, e.equipment, e.description))
+                .toList();
+        var exportRoutines = routines.listByUser(user.id).stream()
+                .map(r -> new ExportRoutine(
+                        r.name, r.description, r.createdAt,
+                        routineItems.listByRoutine(r.id).stream()
+                                .map(i -> new ExportRoutineItem(
+                                        i.exerciseName, i.sets, i.reps, i.restSeconds, i.notes))
+                                .toList()))
+                .toList();
+        var exportStrength = strengthSessions.listByUser(user.id).stream()
+                .map(s -> new ExportStrengthSession(s.date, s.routineName, s.notes, s.createdAt))
+                .toList();
+
         return new SessionExportDTO(
                 SessionExportDTO.CURRENT_SCHEMA_VERSION,
                 Instant.now(),
                 new ExportUser(user.username, user.createdAt),
                 exportWorkouts,
-                exportPlans);
+                exportPlans,
+                exportExercises,
+                exportRoutines,
+                exportStrength);
     }
 
     /**
@@ -121,6 +161,56 @@ public class SessionService {
                         plannedSessions.persist(s);
                     }
                 }
+            }
+        }
+
+        if (doc.exercises() != null) {
+            for (ExportExercise ee : doc.exercises()) {
+                Exercise e = new Exercise();
+                e.userId = user.id;
+                e.name = ee.name();
+                e.muscleGroup = ee.muscleGroup();
+                e.equipment = ee.equipment();
+                e.description = ee.description();
+                exercises.persist(e);
+            }
+        }
+
+        if (doc.routines() != null) {
+            for (ExportRoutine er : doc.routines()) {
+                Routine routine = new Routine();
+                routine.userId = user.id;
+                routine.name = er.name();
+                routine.description = er.description();
+                routine.createdAt = er.createdAt() != null ? er.createdAt() : Instant.now();
+                routines.persist(routine);
+                if (er.items() != null) {
+                    int position = 0;
+                    for (ExportRoutineItem ei : er.items()) {
+                        RoutineItem item = new RoutineItem();
+                        item.routineId = routine.id;
+                        item.position = position++;
+                        item.exerciseName = ei.exerciseName();
+                        item.sets = ei.sets();
+                        item.reps = ei.reps();
+                        item.restSeconds = ei.restSeconds();
+                        item.notes = ei.notes();
+                        routineItems.persist(item);
+                    }
+                }
+            }
+        }
+
+        if (doc.strengthSessions() != null) {
+            for (ExportStrengthSession es : doc.strengthSessions()) {
+                StrengthSession s = new StrengthSession();
+                s.userId = user.id;
+                s.date = es.date();
+                // el id de rutina no es portable; se conserva solo el nombre (snapshot).
+                s.routineName = es.routineName();
+                s.notes = es.notes();
+                s.createdAt = es.createdAt() != null ? es.createdAt() : Instant.now();
+                strengthSessions.persist(s);
             }
         }
         return user;

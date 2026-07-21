@@ -12,19 +12,23 @@ import java.util.List;
  * llevar tus datos entre dispositivos y para que agentes los lean/escriban.
  * No incluye ids de base de datos: se reasignan al importar.
  *
- * v1: usuario + workouts. v2: añade planes de entrenamiento (retrocompatible;
- * un documento v1 se importa sin planes).
+ * v1: usuario + workouts. v2: añade planes. v3: añade gimnasio (ejercicios,
+ * rutinas, sesiones de fuerza). Retrocompatible: un documento de versión menor
+ * se importa sin las secciones que no incluya.
  */
 public record SessionExportDTO(
         int schemaVersion,
         Instant exportedAt,
         ExportUser user,
         List<ExportWorkout> workouts,
-        List<ExportPlan> plans
+        List<ExportPlan> plans,
+        List<ExportExercise> exercises,
+        List<ExportRoutine> routines,
+        List<ExportStrengthSession> strengthSessions
 ) {
 
     /** Versión actual del formato. Súbela al cambiar la estructura. */
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 3;
 
     public record ExportUser(String username, Instant createdAt) {
     }
@@ -58,6 +62,34 @@ public record SessionExportDTO(
             Double targetDistanceMeters,
             Long targetDurationSeconds,
             String description
+    ) {
+    }
+
+    public record ExportExercise(String name, String muscleGroup, String equipment, String description) {
+    }
+
+    public record ExportRoutine(
+            String name,
+            String description,
+            Instant createdAt,
+            List<ExportRoutineItem> items
+    ) {
+    }
+
+    public record ExportRoutineItem(
+            String exerciseName,
+            Integer sets,
+            Integer reps,
+            Integer restSeconds,
+            String notes
+    ) {
+    }
+
+    public record ExportStrengthSession(
+            LocalDate date,
+            String routineName,
+            String notes,
+            Instant createdAt
     ) {
     }
 }

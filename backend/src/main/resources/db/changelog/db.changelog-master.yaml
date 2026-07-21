@@ -16,3 +16,5 @@ databaseChangeLog:
       file: db/changelog/changes/003-suunto-integration.yaml
   - include:
       file: db/changelog/changes/004-create-plans.yaml
+  - include:
+      file: db/changelog/changes/005-create-gym.yaml

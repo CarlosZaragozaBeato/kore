@@ -5,6 +5,10 @@ import com.zensyra.ccollector.core.domain.gym.Exercise;
 import com.zensyra.ccollector.core.domain.gym.Routine;
 import com.zensyra.ccollector.core.domain.gym.RoutineItem;
 import com.zensyra.ccollector.core.domain.gym.StrengthSession;
+import com.zensyra.ccollector.core.domain.nutrition.DietMeal;
+import com.zensyra.ccollector.core.domain.nutrition.DietPlan;
+import com.zensyra.ccollector.core.domain.nutrition.Recipe;
+import com.zensyra.ccollector.core.domain.nutrition.RecipeIngredient;
 import com.zensyra.ccollector.core.domain.plan.PlannedSession;
 import com.zensyra.ccollector.core.domain.plan.TrainingPlan;
 import com.zensyra.ccollector.core.domain.workout.Workout;
@@ -16,6 +20,10 @@ import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportPlannedSes
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportRoutine;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportRoutineItem;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportStrengthSession;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportDietPlan;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportIngredient;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportMeal;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportRecipe;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportUser;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportWorkout;
 import com.zensyra.ccollector.core.repository.auth.UserRepository;
@@ -23,6 +31,10 @@ import com.zensyra.ccollector.core.repository.gym.ExerciseRepository;
 import com.zensyra.ccollector.core.repository.gym.RoutineItemRepository;
 import com.zensyra.ccollector.core.repository.gym.RoutineRepository;
 import com.zensyra.ccollector.core.repository.gym.StrengthSessionRepository;
+import com.zensyra.ccollector.core.repository.nutrition.DietMealRepository;
+import com.zensyra.ccollector.core.repository.nutrition.DietPlanRepository;
+import com.zensyra.ccollector.core.repository.nutrition.RecipeIngredientRepository;
+import com.zensyra.ccollector.core.repository.nutrition.RecipeRepository;
 import com.zensyra.ccollector.core.repository.plan.PlanRepository;
 import com.zensyra.ccollector.core.repository.plan.PlannedSessionRepository;
 import com.zensyra.ccollector.core.repository.workout.WorkoutRepository;
@@ -45,11 +57,17 @@ public class SessionService {
     private final RoutineRepository routines;
     private final RoutineItemRepository routineItems;
     private final StrengthSessionRepository strengthSessions;
+    private final RecipeRepository recipes;
+    private final RecipeIngredientRepository recipeIngredients;
+    private final DietPlanRepository dietPlans;
+    private final DietMealRepository dietMeals;
 
     public SessionService(UserRepository users, WorkoutRepository workouts,
                           PlanRepository plans, PlannedSessionRepository plannedSessions,
                           ExerciseRepository exercises, RoutineRepository routines,
-                          RoutineItemRepository routineItems, StrengthSessionRepository strengthSessions) {
+                          RoutineItemRepository routineItems, StrengthSessionRepository strengthSessions,
+                          RecipeRepository recipes, RecipeIngredientRepository recipeIngredients,
+                          DietPlanRepository dietPlans, DietMealRepository dietMeals) {
         this.users = users;
         this.workouts = workouts;
         this.plans = plans;
@@ -58,6 +76,10 @@ public class SessionService {
         this.routines = routines;
         this.routineItems = routineItems;
         this.strengthSessions = strengthSessions;
+        this.recipes = recipes;
+        this.recipeIngredients = recipeIngredients;
+        this.dietPlans = dietPlans;
+        this.dietMeals = dietMeals;
     }
 
     /** Vuelca la sesión completa del usuario a un documento portable. */
@@ -90,6 +112,22 @@ public class SessionService {
         var exportStrength = strengthSessions.listByUser(user.id).stream()
                 .map(s -> new ExportStrengthSession(s.date, s.routineName, s.notes, s.createdAt))
                 .toList();
+        var exportRecipes = recipes.listByUser(user.id).stream()
+                .map(r -> new ExportRecipe(
+                        r.name, r.description, r.servings, r.calories, r.protein, r.carbs, r.fat,
+                        r.steps, r.createdAt,
+                        recipeIngredients.listByRecipe(r.id).stream()
+                                .map(i -> new ExportIngredient(i.name, i.quantity, i.unit))
+                                .toList()))
+                .toList();
+        var exportDiets = dietPlans.listByUser(user.id).stream()
+                .map(d -> new ExportDietPlan(
+                        d.name, d.startDate, d.endDate, d.targetCalories, d.targetProtein,
+                        d.targetCarbs, d.targetFat, d.notes, d.createdAt,
+                        dietMeals.listByPlan(d.id).stream()
+                                .map(m -> new ExportMeal(m.date, m.mealType, m.recipeName, m.notes))
+                                .toList()))
+                .toList();
 
         return new SessionExportDTO(
                 SessionExportDTO.CURRENT_SCHEMA_VERSION,
@@ -99,7 +137,9 @@ public class SessionService {
                 exportPlans,
                 exportExercises,
                 exportRoutines,
-                exportStrength);
+                exportStrength,
+                exportRecipes,
+                exportDiets);
     }
 
     /**
@@ -211,6 +251,63 @@ public class SessionService {
                 s.notes = es.notes();
                 s.createdAt = es.createdAt() != null ? es.createdAt() : Instant.now();
                 strengthSessions.persist(s);
+            }
+        }
+
+        if (doc.recipes() != null) {
+            for (ExportRecipe er : doc.recipes()) {
+                Recipe recipe = new Recipe();
+                recipe.userId = user.id;
+                recipe.name = er.name();
+                recipe.description = er.description();
+                recipe.servings = er.servings();
+                recipe.calories = er.calories();
+                recipe.protein = er.protein();
+                recipe.carbs = er.carbs();
+                recipe.fat = er.fat();
+                recipe.steps = er.steps();
+                recipe.createdAt = er.createdAt() != null ? er.createdAt() : Instant.now();
+                recipes.persist(recipe);
+                if (er.ingredients() != null) {
+                    int position = 0;
+                    for (ExportIngredient ei : er.ingredients()) {
+                        RecipeIngredient ingredient = new RecipeIngredient();
+                        ingredient.recipeId = recipe.id;
+                        ingredient.position = position++;
+                        ingredient.name = ei.name();
+                        ingredient.quantity = ei.quantity();
+                        ingredient.unit = ei.unit();
+                        recipeIngredients.persist(ingredient);
+                    }
+                }
+            }
+        }
+
+        if (doc.dietPlans() != null) {
+            for (ExportDietPlan ed : doc.dietPlans()) {
+                DietPlan plan = new DietPlan();
+                plan.userId = user.id;
+                plan.name = ed.name();
+                plan.startDate = ed.startDate();
+                plan.endDate = ed.endDate();
+                plan.targetCalories = ed.targetCalories();
+                plan.targetProtein = ed.targetProtein();
+                plan.targetCarbs = ed.targetCarbs();
+                plan.targetFat = ed.targetFat();
+                plan.notes = ed.notes();
+                plan.createdAt = ed.createdAt() != null ? ed.createdAt() : Instant.now();
+                dietPlans.persist(plan);
+                if (ed.meals() != null) {
+                    for (ExportMeal em : ed.meals()) {
+                        DietMeal meal = new DietMeal();
+                        meal.dietPlanId = plan.id;
+                        meal.date = em.date();
+                        meal.mealType = em.mealType();
+                        meal.recipeName = em.recipeName();
+                        meal.notes = em.notes();
+                        dietMeals.persist(meal);
+                    }
+                }
             }
         }
         return user;

@@ -114,7 +114,7 @@ class GymResourceTest {
 
         given().header(HEADER, user).when().get("/api/v1/session/export")
                 .then().statusCode(200)
-                .body("schemaVersion", is(3))
+                .body("schemaVersion", is(4))
                 .body("exercises.size()", is(1))
                 .body("routines.size()", is(1))
                 .body("routines[0].items[0].exerciseName", is("Press banca"));

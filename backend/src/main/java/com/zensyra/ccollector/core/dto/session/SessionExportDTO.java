@@ -1,5 +1,6 @@
 package com.zensyra.ccollector.core.dto.session;
 
+import com.zensyra.ccollector.core.domain.nutrition.MealType;
 import com.zensyra.ccollector.core.domain.workout.WorkoutSource;
 import com.zensyra.ccollector.core.domain.workout.WorkoutType;
 
@@ -13,8 +14,9 @@ import java.util.List;
  * No incluye ids de base de datos: se reasignan al importar.
  *
  * v1: usuario + workouts. v2: añade planes. v3: añade gimnasio (ejercicios,
- * rutinas, sesiones de fuerza). Retrocompatible: un documento de versión menor
- * se importa sin las secciones que no incluya.
+ * rutinas, sesiones de fuerza). v4: añade nutrición (recetas, dietas).
+ * Retrocompatible: un documento de versión menor se importa sin las secciones
+ * que no incluya.
  */
 public record SessionExportDTO(
         int schemaVersion,
@@ -24,11 +26,13 @@ public record SessionExportDTO(
         List<ExportPlan> plans,
         List<ExportExercise> exercises,
         List<ExportRoutine> routines,
-        List<ExportStrengthSession> strengthSessions
+        List<ExportStrengthSession> strengthSessions,
+        List<ExportRecipe> recipes,
+        List<ExportDietPlan> dietPlans
 ) {
 
     /** Versión actual del formato. Súbela al cambiar la estructura. */
-    public static final int CURRENT_SCHEMA_VERSION = 3;
+    public static final int CURRENT_SCHEMA_VERSION = 4;
 
     public record ExportUser(String username, Instant createdAt) {
     }
@@ -91,5 +95,39 @@ public record SessionExportDTO(
             String notes,
             Instant createdAt
     ) {
+    }
+
+    public record ExportRecipe(
+            String name,
+            String description,
+            Integer servings,
+            Double calories,
+            Double protein,
+            Double carbs,
+            Double fat,
+            String steps,
+            Instant createdAt,
+            List<ExportIngredient> ingredients
+    ) {
+    }
+
+    public record ExportIngredient(String name, Double quantity, String unit) {
+    }
+
+    public record ExportDietPlan(
+            String name,
+            LocalDate startDate,
+            LocalDate endDate,
+            Double targetCalories,
+            Double targetProtein,
+            Double targetCarbs,
+            Double targetFat,
+            String notes,
+            Instant createdAt,
+            List<ExportMeal> meals
+    ) {
+    }
+
+    public record ExportMeal(LocalDate date, MealType mealType, String recipeName, String notes) {
     }
 }

@@ -180,16 +180,23 @@ roundtrip export/import de planes) + flujo real (plan con sesiones, adherencia
 
 ---
 
-### Fase 5 — Rutinas de gimnasio en casa
+### Fase 5 — Rutinas de gimnasio en casa ✅ (completada)
 
 Objetivo: fuerza y trabajo complementario.
 
-- [ ] Catálogo de ejercicios (grupo muscular, material, descripción).
-- [ ] Modelo de rutina (ejercicios, series, repeticiones, descanso).
-- [ ] Registro de sesiones de fuerza realizadas.
-- [ ] Rutinas y registros exportables/importables como JSON.
+- [x] Catálogo de ejercicios (nombre, grupo muscular, material, descripción).
+- [x] Rutinas con ejercicios (series, repeticiones, descanso, notas); el
+      ejercicio va incrustado en la rutina (snapshot) para que sea autocontenida.
+- [x] Registro de sesiones de fuerza (fecha, rutina opcional con snapshot de
+      nombre, notas). _Log por serie/peso queda como trabajo futuro._
+- [x] Ejercicios, rutinas y sesiones exportables/importables (en el export de
+      sesión, `schemaVersion` 3, retrocompatible); `POST /routines` sirve
+      también de import para una rutina generada por un agente.
 
-**Entregable:** crear rutinas de fuerza en casa, seguirlas y registrar el trabajo.
+**Entregable:** ✅ creas rutinas de fuerza en casa, mantienes un catálogo y
+registras las sesiones. Verificado: 29 tests backend en verde (CRUD de
+ejercicios/rutinas/sesiones, roundtrip export/import) + flujo real; build y lint
+frontend limpios.
 
 ---
 

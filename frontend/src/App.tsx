@@ -6,8 +6,9 @@ import Home from './pages/Home'
 import Settings from './pages/Settings'
 import Analytics from './pages/Analytics'
 import Plans from './pages/Plans'
+import Gym from './pages/Gym'
 
-type View = 'workouts' | 'plans' | 'analytics' | 'settings'
+type View = 'workouts' | 'plans' | 'gym' | 'analytics' | 'settings'
 
 export default function App() {
   const [username, setUsername] = useState<string | null>(getUsername())
@@ -45,6 +46,9 @@ export default function App() {
           <button className={view === 'plans' ? 'tab active' : 'tab'} onClick={() => setView('plans')}>
             Planes
           </button>
+          <button className={view === 'gym' ? 'tab active' : 'tab'} onClick={() => setView('gym')}>
+            Gimnasio
+          </button>
           <button className={view === 'analytics' ? 'tab active' : 'tab'} onClick={() => setView('analytics')}>
             Análisis
           </button>
@@ -73,6 +77,7 @@ export default function App() {
 
       {view === 'workouts' && <Home />}
       {view === 'plans' && <Plans />}
+      {view === 'gym' && <Gym />}
       {view === 'analytics' && <Analytics />}
       {view === 'settings' && <Settings />}
     </main>

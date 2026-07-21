@@ -150,6 +150,121 @@ export function saveSuuntoSettings(req: SuuntoSettingsRequest): Promise<SuuntoSe
   }).then((r) => unwrap<SuuntoSettings>(r))
 }
 
+export interface Exercise {
+  id: number
+  name: string
+  muscleGroup: string | null
+  equipment: string | null
+  description: string | null
+}
+
+export interface ExerciseRequest {
+  name: string
+  muscleGroup: string | null
+  equipment: string | null
+  description: string | null
+}
+
+export interface RoutineItem {
+  exerciseName: string
+  sets: number | null
+  reps: number | null
+  restSeconds: number | null
+  notes: string | null
+}
+
+export interface Routine {
+  id: number
+  name: string
+  description: string | null
+  createdAt: string
+  items: RoutineItem[]
+}
+
+export interface RoutineRequest {
+  name: string
+  description: string | null
+  items: RoutineItem[]
+}
+
+export interface StrengthSession {
+  id: number
+  date: string
+  routineId: number | null
+  routineName: string | null
+  notes: string | null
+}
+
+export interface StrengthSessionRequest {
+  date: string
+  routineId: number | null
+  notes: string | null
+}
+
+export function listExercises(): Promise<Exercise[]> {
+  return fetch(`${BASE}/exercises`, { headers: headers(true) }).then((r) => unwrap<Exercise[]>(r))
+}
+
+export function createExercise(req: ExerciseRequest): Promise<Exercise> {
+  return fetch(`${BASE}/exercises`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Exercise>(r))
+}
+
+export function deleteExercise(id: number): Promise<void> {
+  return fetch(`${BASE}/exercises/${id}`, { method: 'DELETE', headers: headers(true) }).then((r) =>
+    unwrap<void>(r),
+  )
+}
+
+export function listRoutines(): Promise<Routine[]> {
+  return fetch(`${BASE}/routines`, { headers: headers(true) }).then((r) => unwrap<Routine[]>(r))
+}
+
+export function createRoutine(req: RoutineRequest): Promise<Routine> {
+  return fetch(`${BASE}/routines`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Routine>(r))
+}
+
+export function updateRoutine(id: number, req: RoutineRequest): Promise<Routine> {
+  return fetch(`${BASE}/routines/${id}`, {
+    method: 'PUT',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Routine>(r))
+}
+
+export function deleteRoutine(id: number): Promise<void> {
+  return fetch(`${BASE}/routines/${id}`, { method: 'DELETE', headers: headers(true) }).then((r) =>
+    unwrap<void>(r),
+  )
+}
+
+export function listStrengthSessions(): Promise<StrengthSession[]> {
+  return fetch(`${BASE}/strength-sessions`, { headers: headers(true) }).then((r) =>
+    unwrap<StrengthSession[]>(r),
+  )
+}
+
+export function createStrengthSession(req: StrengthSessionRequest): Promise<StrengthSession> {
+  return fetch(`${BASE}/strength-sessions`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<StrengthSession>(r))
+}
+
+export function deleteStrengthSession(id: number): Promise<void> {
+  return fetch(`${BASE}/strength-sessions/${id}`, { method: 'DELETE', headers: headers(true) }).then(
+    (r) => unwrap<void>(r),
+  )
+}
+
 export interface PlannedSession {
   id: number | null
   date: string

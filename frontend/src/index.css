@@ -115,11 +115,44 @@ hr {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+button.tab {
+  background: none;
+  border: none;
+  color: #444;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+}
+
+button.tab.active {
+  background: #e8effd;
+  color: #2f6fed;
+  font-weight: 600;
+}
+
+label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+label.checkbox input {
+  width: auto;
 }
 
 .form .grid {

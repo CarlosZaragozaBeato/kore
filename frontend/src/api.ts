@@ -111,3 +111,53 @@ export function importSession(doc: unknown): Promise<CollectorUser> {
     body: JSON.stringify(doc),
   }).then((r) => unwrap<CollectorUser>(r))
 }
+
+export interface SuuntoSettings {
+  enabled: boolean
+  clientId: string | null
+  hasClientSecret: boolean
+  hasRefreshToken: boolean
+  hasSubscriptionKey: boolean
+  lastSyncAt: string | null
+}
+
+export interface SuuntoSettingsRequest {
+  enabled: boolean
+  clientId: string
+  clientSecret: string | null
+  refreshToken: string | null
+  subscriptionKey: string | null
+}
+
+export interface SyncResult {
+  imported: number
+  skipped: number
+  total: number
+  syncedAt: string
+}
+
+export function getSuuntoSettings(): Promise<SuuntoSettings> {
+  return fetch(`${BASE}/suunto/settings`, { headers: headers(true) }).then((r) =>
+    unwrap<SuuntoSettings>(r),
+  )
+}
+
+export function saveSuuntoSettings(req: SuuntoSettingsRequest): Promise<SuuntoSettings> {
+  return fetch(`${BASE}/suunto/settings`, {
+    method: 'PUT',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<SuuntoSettings>(r))
+}
+
+export function syncSuunto(): Promise<SyncResult> {
+  // POST sin cuerpo: no enviamos Content-Type.
+  const h: Record<string, string> = {}
+  const username = getUsername()
+  if (username) {
+    h['X-CCollector-Username'] = username
+  }
+  return fetch(`${BASE}/suunto/sync`, { method: 'POST', headers: h }).then((r) =>
+    unwrap<SyncResult>(r),
+  )
+}

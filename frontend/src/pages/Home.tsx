@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import {
   createWorkout,
   deleteWorkout,
-  exportSession,
   listWorkouts,
   updateWorkout,
   type Workout,
@@ -11,12 +10,7 @@ import {
 import { formatDuration, formatPace, metersToKm } from '../format'
 import WorkoutForm from '../components/WorkoutForm'
 
-interface Props {
-  username: string
-  onLogout: () => void
-}
-
-export default function Home({ username, onLogout }: Props) {
+export default function Home() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [editing, setEditing] = useState<Workout | null>(null)
   const [busy, setBusy] = useState(false)
@@ -66,38 +60,8 @@ export default function Home({ username, onLogout }: Props) {
     }
   }
 
-  async function doExport() {
-    setError(null)
-    try {
-      const doc = await exportSession()
-      const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `ccollector-${username}-${new Date().toISOString().slice(0, 10)}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      setError((err as Error).message)
-    }
-  }
-
   return (
-    <main className="app">
-      <header className="topbar">
-        <div>
-          <strong>CCollector</strong> · <span className="muted">{username}</span>
-        </div>
-        <div className="actions">
-          <button className="secondary" onClick={doExport}>
-            Exportar sesión
-          </button>
-          <button className="secondary" onClick={onLogout}>
-            Salir
-          </button>
-        </div>
-      </header>
-
+    <>
       {error && <p className="error">{error}</p>}
 
       <WorkoutForm
@@ -123,6 +87,7 @@ export default function Home({ username, onLogout }: Props) {
                 <th>Ritmo</th>
                 <th>FC</th>
                 <th>RPE</th>
+                <th>Origen</th>
                 <th></th>
               </tr>
             </thead>
@@ -136,6 +101,7 @@ export default function Home({ username, onLogout }: Props) {
                   <td>{formatPace(w.paceSecondsPerKm)}</td>
                   <td>{w.avgHeartRate ?? '—'}</td>
                   <td>{w.perceivedEffort ?? '—'}</td>
+                  <td>{w.source}</td>
                   <td className="row-actions">
                     <button className="link" onClick={() => setEditing(w)}>
                       Editar
@@ -150,6 +116,6 @@ export default function Home({ username, onLogout }: Props) {
           </table>
         )}
       </section>
-    </main>
+    </>
   )
 }

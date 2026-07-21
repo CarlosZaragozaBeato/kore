@@ -200,16 +200,22 @@ frontend limpios.
 
 ---
 
-### Fase 6 — Recetas y dietas
+### Fase 6 — Recetas y dietas ✅ (completada)
 
 Objetivo: nutrición integrada con el entrenamiento.
 
-- [ ] Modelo de receta (ingredientes, pasos, macros/calorías).
-- [ ] Modelo de plan de dieta (comidas por día, objetivos nutricionales).
-- [ ] Planificación de dietas por periodo.
-- [ ] Recetas y dietas exportables/importables como JSON.
+- [x] Receta: ingredientes (nombre/cantidad/unidad), pasos (texto multilínea),
+      macros (calorías/proteína/carbos/grasa como totales) y raciones.
+- [x] Plan de dieta con objetivos nutricionales (kcal + macros) y comidas por
+      día (fecha, tipo de comida, receta —snapshot de nombre—, notas).
+- [x] Planificación por periodo (inicio/fin).
+- [x] Recetas y dietas exportables/importables (export de sesión,
+      `schemaVersion` 4, retrocompatible); `POST /recipes` y `POST /diet-plans`
+      sirven de import para contenido generado por un agente.
 
-**Entregable:** gestionar recetas y planificar dietas dentro de la plataforma.
+**Entregable:** ✅ gestionas recetas y planificas dietas dentro de la plataforma.
+Verificado: 34 tests backend en verde (CRUD de recetas/dietas, validación,
+roundtrip export/import) + flujo real; build y lint frontend limpios.
 
 ---
 

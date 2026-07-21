@@ -1,12 +1,18 @@
 package com.zensyra.ccollector.core.service.session;
 
 import com.zensyra.ccollector.core.domain.auth.CollectorUser;
+import com.zensyra.ccollector.core.domain.plan.PlannedSession;
+import com.zensyra.ccollector.core.domain.plan.TrainingPlan;
 import com.zensyra.ccollector.core.domain.workout.Workout;
 import com.zensyra.ccollector.core.domain.workout.WorkoutSource;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportPlan;
+import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportPlannedSession;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportUser;
 import com.zensyra.ccollector.core.dto.session.SessionExportDTO.ExportWorkout;
 import com.zensyra.ccollector.core.repository.auth.UserRepository;
+import com.zensyra.ccollector.core.repository.plan.PlanRepository;
+import com.zensyra.ccollector.core.repository.plan.PlannedSessionRepository;
 import com.zensyra.ccollector.core.repository.workout.WorkoutRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -21,10 +27,15 @@ public class SessionService {
 
     private final UserRepository users;
     private final WorkoutRepository workouts;
+    private final PlanRepository plans;
+    private final PlannedSessionRepository plannedSessions;
 
-    public SessionService(UserRepository users, WorkoutRepository workouts) {
+    public SessionService(UserRepository users, WorkoutRepository workouts,
+                          PlanRepository plans, PlannedSessionRepository plannedSessions) {
         this.users = users;
         this.workouts = workouts;
+        this.plans = plans;
+        this.plannedSessions = plannedSessions;
     }
 
     /** Vuelca la sesión completa del usuario a un documento portable. */
@@ -34,11 +45,21 @@ public class SessionService {
                         w.date, w.type, w.distanceMeters, w.durationSeconds,
                         w.avgHeartRate, w.perceivedEffort, w.notes, w.source, w.createdAt))
                 .toList();
+        var exportPlans = plans.listByUser(user.id).stream()
+                .map(p -> new ExportPlan(
+                        p.name, p.goal, p.startDate, p.endDate, p.createdAt,
+                        plannedSessions.listByPlan(p.id).stream()
+                                .map(s -> new ExportPlannedSession(
+                                        s.date, s.type, s.targetDistanceMeters,
+                                        s.targetDurationSeconds, s.description))
+                                .toList()))
+                .toList();
         return new SessionExportDTO(
                 SessionExportDTO.CURRENT_SCHEMA_VERSION,
                 Instant.now(),
                 new ExportUser(user.username, user.createdAt),
-                exportWorkouts);
+                exportWorkouts,
+                exportPlans);
     }
 
     /**
@@ -75,6 +96,31 @@ public class SessionService {
                 w.source = ew.source() != null ? ew.source() : WorkoutSource.MANUAL;
                 w.createdAt = ew.createdAt() != null ? ew.createdAt() : Instant.now();
                 workouts.persist(w);
+            }
+        }
+
+        if (doc.plans() != null) {
+            for (ExportPlan ep : doc.plans()) {
+                TrainingPlan plan = new TrainingPlan();
+                plan.userId = user.id;
+                plan.name = ep.name();
+                plan.goal = ep.goal();
+                plan.startDate = ep.startDate();
+                plan.endDate = ep.endDate();
+                plan.createdAt = ep.createdAt() != null ? ep.createdAt() : Instant.now();
+                plans.persist(plan);
+                if (ep.sessions() != null) {
+                    for (ExportPlannedSession es : ep.sessions()) {
+                        PlannedSession s = new PlannedSession();
+                        s.planId = plan.id;
+                        s.date = es.date();
+                        s.type = es.type();
+                        s.targetDistanceMeters = es.targetDistanceMeters();
+                        s.targetDurationSeconds = es.targetDurationSeconds();
+                        s.description = es.description();
+                        plannedSessions.persist(s);
+                    }
+                }
             }
         }
         return user;

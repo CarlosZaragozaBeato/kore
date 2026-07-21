@@ -340,3 +340,61 @@ label.checkbox input {
 .session-row .pending {
   color: #b0b6bf;
 }
+
+/* --- Mobile-first / responsive --- */
+@media (max-width: 640px) {
+  .app {
+    padding: 1rem 0.7rem 3rem;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  /* La barra de pestañas se desliza en horizontal en vez de desbordarse. */
+  .nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  button.tab {
+    white-space: nowrap;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  /* Tablas anchas: scroll horizontal en lugar de romper el layout. */
+  .workouts {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 16px evita el zoom automático al enfocar inputs en iOS. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Objetivos táctiles más cómodos. */
+  button {
+    padding: 0.6rem 0.9rem;
+  }
+
+  .session-row input,
+  .session-row select {
+    flex: 1 1 40%;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "CCollector",
+  "short_name": "CCollector",
+  "description": "Plataforma personal de entrenamiento, planificación y nutrición.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f7f9",
+  "theme_color": "#2f6fed",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

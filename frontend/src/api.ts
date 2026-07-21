@@ -150,6 +150,125 @@ export function saveSuuntoSettings(req: SuuntoSettingsRequest): Promise<SuuntoSe
   }).then((r) => unwrap<SuuntoSettings>(r))
 }
 
+export interface Ingredient {
+  name: string
+  quantity: number | null
+  unit: string | null
+}
+
+export interface Recipe {
+  id: number
+  name: string
+  description: string | null
+  servings: number | null
+  calories: number | null
+  protein: number | null
+  carbs: number | null
+  fat: number | null
+  steps: string | null
+  createdAt: string
+  ingredients: Ingredient[]
+}
+
+export interface RecipeRequest {
+  name: string
+  description: string | null
+  servings: number | null
+  calories: number | null
+  protein: number | null
+  carbs: number | null
+  fat: number | null
+  steps: string | null
+  ingredients: Ingredient[]
+}
+
+export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'
+
+export interface Meal {
+  date: string
+  mealType: MealType
+  recipeName: string | null
+  notes: string | null
+}
+
+export interface DietPlan {
+  id: number
+  name: string
+  startDate: string
+  endDate: string | null
+  targetCalories: number | null
+  targetProtein: number | null
+  targetCarbs: number | null
+  targetFat: number | null
+  notes: string | null
+  createdAt: string
+  meals: Meal[]
+}
+
+export interface DietPlanRequest {
+  name: string
+  startDate: string
+  endDate: string | null
+  targetCalories: number | null
+  targetProtein: number | null
+  targetCarbs: number | null
+  targetFat: number | null
+  notes: string | null
+  meals: Meal[]
+}
+
+export function listRecipes(): Promise<Recipe[]> {
+  return fetch(`${BASE}/recipes`, { headers: headers(true) }).then((r) => unwrap<Recipe[]>(r))
+}
+
+export function createRecipe(req: RecipeRequest): Promise<Recipe> {
+  return fetch(`${BASE}/recipes`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Recipe>(r))
+}
+
+export function updateRecipe(id: number, req: RecipeRequest): Promise<Recipe> {
+  return fetch(`${BASE}/recipes/${id}`, {
+    method: 'PUT',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Recipe>(r))
+}
+
+export function deleteRecipe(id: number): Promise<void> {
+  return fetch(`${BASE}/recipes/${id}`, { method: 'DELETE', headers: headers(true) }).then((r) =>
+    unwrap<void>(r),
+  )
+}
+
+export function listDietPlans(): Promise<DietPlan[]> {
+  return fetch(`${BASE}/diet-plans`, { headers: headers(true) }).then((r) => unwrap<DietPlan[]>(r))
+}
+
+export function createDietPlan(req: DietPlanRequest): Promise<DietPlan> {
+  return fetch(`${BASE}/diet-plans`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<DietPlan>(r))
+}
+
+export function updateDietPlan(id: number, req: DietPlanRequest): Promise<DietPlan> {
+  return fetch(`${BASE}/diet-plans/${id}`, {
+    method: 'PUT',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<DietPlan>(r))
+}
+
+export function deleteDietPlan(id: number): Promise<void> {
+  return fetch(`${BASE}/diet-plans/${id}`, { method: 'DELETE', headers: headers(true) }).then((r) =>
+    unwrap<void>(r),
+  )
+}
+
 export interface Exercise {
   id: number
   name: string

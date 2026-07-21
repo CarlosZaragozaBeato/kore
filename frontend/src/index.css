@@ -265,3 +265,78 @@ label.checkbox input {
   font-size: 0.7rem;
   color: #6b7280;
 }
+
+.plan {
+  margin-bottom: 1rem;
+}
+
+.plan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.adherence {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.adherence-bar {
+  flex: 1;
+  height: 10px;
+  background: #eef0f3;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.adherence-fill {
+  height: 100%;
+  background: #1e8449;
+}
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.timeline li {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  font-size: 0.9rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #f2f3f5;
+}
+
+.timeline li .mark {
+  color: #b0b6bf;
+}
+
+.timeline li.done .mark {
+  color: #1e8449;
+  font-weight: 700;
+}
+
+.session-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.session-row .done {
+  color: #1e8449;
+  font-weight: 700;
+}
+
+.session-row .pending {
+  color: #b0b6bf;
+}

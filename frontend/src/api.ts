@@ -150,6 +150,72 @@ export function saveSuuntoSettings(req: SuuntoSettingsRequest): Promise<SuuntoSe
   }).then((r) => unwrap<SuuntoSettings>(r))
 }
 
+export interface PlannedSession {
+  id: number | null
+  date: string
+  type: WorkoutType
+  targetDistanceMeters: number | null
+  targetDurationSeconds: number | null
+  description: string | null
+  done: boolean
+}
+
+export interface Plan {
+  id: number
+  name: string
+  goal: string | null
+  startDate: string
+  endDate: string | null
+  createdAt: string
+  sessions: PlannedSession[]
+  plannedCount: number
+  completedCount: number
+  adherencePct: number
+}
+
+export interface PlanSessionRequest {
+  date: string
+  type: WorkoutType
+  targetDistanceMeters: number | null
+  targetDurationSeconds: number | null
+  description: string | null
+}
+
+export interface PlanRequest {
+  name: string
+  goal: string | null
+  startDate: string
+  endDate: string | null
+  sessions: PlanSessionRequest[]
+}
+
+export function listPlans(): Promise<Plan[]> {
+  return fetch(`${BASE}/plans`, { headers: headers(true) }).then((r) => unwrap<Plan[]>(r))
+}
+
+export function createPlan(req: PlanRequest): Promise<Plan> {
+  return fetch(`${BASE}/plans`, {
+    method: 'POST',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Plan>(r))
+}
+
+export function updatePlan(id: number, req: PlanRequest): Promise<Plan> {
+  return fetch(`${BASE}/plans/${id}`, {
+    method: 'PUT',
+    headers: headers(true),
+    body: JSON.stringify(req),
+  }).then((r) => unwrap<Plan>(r))
+}
+
+export function deletePlan(id: number): Promise<void> {
+  return fetch(`${BASE}/plans/${id}`, {
+    method: 'DELETE',
+    headers: headers(true),
+  }).then((r) => unwrap<void>(r))
+}
+
 export interface PeriodSummary {
   label: string
   from: string

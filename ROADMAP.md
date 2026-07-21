@@ -159,18 +159,24 @@ build y lint frontend limpios. Sin migraciones nuevas (todo derivado de
 
 ---
 
-### Fase 4 — Planificación de entrenamientos (running)
+### Fase 4 — Planificación de entrenamientos (running) ✅ (completada)
 
 Objetivo: pasar de registrar a planificar.
 
-- [ ] Modelo de plan de entrenamiento (objetivo, fechas, sesiones planificadas).
-- [ ] Calendario de sesiones planificadas vs realizadas.
-- [ ] Comparar lo planificado con lo ejecutado (adherencia).
-- [ ] Planes exportables/importables como JSON (base para que un agente genere
-      planes).
+- [x] Modelo de plan (nombre, objetivo, fechas) con sesiones planificadas
+      (fecha, tipo, distancia/duración objetivo, descripción). Migración `004`.
+- [x] Timeline de sesiones planificadas vs realizadas (una sesión se marca
+      hecha si hay un entreno ese día). _Calendario como timeline ordenado, no
+      rejilla mensual._
+- [x] Adherencia: completadas/planificadas y % por plan.
+- [x] Planes exportables/importables como JSON: incluidos en el export de
+      sesión (`schemaVersion` 2, retrocompatible); `POST /plans` sirve además
+      como import de un plan generado por un agente.
 
-**Entregable:** puedes crear un plan, verlo en calendario y contrastarlo con lo
-que realmente entrenaste.
+**Entregable:** ✅ creas un plan, ves su timeline planificado-vs-realizado y su
+adherencia. Verificado: 23 tests backend en verde (adherencia, CRUD, validación,
+roundtrip export/import de planes) + flujo real (plan con sesiones, adherencia
+1/2 = 50%, export con planes); build y lint frontend limpios.
 
 ---
 

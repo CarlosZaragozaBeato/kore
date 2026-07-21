@@ -1,0 +1,165 @@
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #f6f7f9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid #2f6fed;
+  background: #2f6fed;
+  color: #fff;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: #fff;
+  color: #2f6fed;
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: #2f6fed;
+  padding: 0.2rem 0.4rem;
+}
+
+button.link.danger {
+  color: #c0392b;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #ccd2db;
+  border-radius: 6px;
+  width: 100%;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #e3e6ea;
+  margin: 1.2rem 0;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.error {
+  color: #c0392b;
+}
+
+.ok {
+  color: #1e8449;
+}
+
+.center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.center .card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.center form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.form .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.form label {
+  margin-bottom: 0.4rem;
+}
+
+.duration {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.workouts {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.workouts th,
+.workouts td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #eef0f3;
+  font-size: 0.9rem;
+}
+
+.workouts th {
+  background: #f0f2f5;
+  font-weight: 600;
+}
+
+.row-actions {
+  white-space: nowrap;
+}

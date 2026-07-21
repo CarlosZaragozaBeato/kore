@@ -65,32 +65,42 @@ limpios.
 
 ---
 
-### Fase 1 — MVP núcleo: sesión, log de entrenamientos y portabilidad
+### Fase 1 — MVP núcleo: sesión, log de entrenamientos y portabilidad ✅ (completada)
 
 Los 4 objetivos fundacionales del MVP.
 
 **1.1 · Login simple por username**
-- [ ] Crear sesión indicando solo el `username` (sin contraseña).
-- [ ] `CollectorUser` + migración `001-create-users`.
-- [ ] `AuthResource` / `AuthService` / `UserRepository` funcionales.
-- [ ] Frontend: pantalla de entrada + persistencia de la sesión en el
-      dispositivo (localStorage / token local).
+- [x] Crear sesión indicando solo el `username` (sin contraseña, login-or-create).
+- [x] `CollectorUser` + migración `001-create-users`.
+- [x] `AuthResource` / `AuthService` / `UserRepository` funcionales.
+- [x] Frontend: pantalla de entrada + sesión persistida en localStorage
+      (`ccollector.username`); identidad vía header `X-CCollector-Username`.
 
 **1.2 · Log de entrenamientos propio (manual)**
-- [ ] Modelo de entrenamiento (fecha, tipo, distancia, duración, ritmo,
-      FC, notas, sensaciones).
-- [ ] CRUD de entrenamientos vía API.
-- [ ] Frontend: crear / editar / listar / ver detalle de un entreno.
+- [x] Modelo de entrenamiento (fecha, tipo, distancia, duración, FC, esfuerzo
+      percibido, notas, origen); unidades canónicas (metros/segundos), ritmo
+      derivado.
+- [x] CRUD de entrenamientos vía API (`/api/v1/workouts`, con ownership por
+      usuario y validación).
+- [x] Frontend: crear / editar / listar / eliminar entrenos.
 
 **1.3 · Export / import de sesión portable**
-- [ ] Endpoint de **export**: vuelca toda la sesión (usuario + entrenos +
-      settings) a un único JSON descargable.
-- [ ] Endpoint de **import**: reconstruye una sesión desde ese JSON.
-- [ ] Versionado del formato de export (`schemaVersion`) para compatibilidad.
-- [ ] Frontend: botones de exportar/importar en el área de sesión.
+- [x] Endpoint de **export** (`GET /session/export`): vuelca usuario + entrenos
+      a un JSON descargable (sin ids de BD).
+- [x] Endpoint de **import** (`POST /session/import`): reconstruye la sesión;
+      409 si el username ya existe.
+- [x] Versionado del formato (`schemaVersion` 1).
+- [x] Frontend: exportar (descarga) y importar (subida de fichero).
 
-**Entregable:** puedes crear tu sesión, registrar entrenos a mano, exportarlo
+**Entregable:** ✅ puedes crear tu sesión, registrar entrenos a mano, exportarlo
 todo a un JSON, borrarlo, reimportarlo en otro dispositivo y recuperar tus datos.
+Verificado: 11 tests backend en verde + flujo end-to-end completo (login → CRUD
+→ export → import → conflicto 409); build y lint frontend limpios.
+
+**Nota técnica:** SQLite exige `id` de tipo `INTEGER` para autoincrement, y las
+fechas/instantes se guardan como texto ISO-8601 (convertidores JPA) para evitar
+el parseo de fechas del driver. Persistencia con Hibernate ORM + Panache;
+Liquibase es la fuente de verdad del esquema.
 
 ---
 
@@ -100,7 +110,7 @@ Objetivo: enriquecer el log con datos reales importados de Suunto.
 
 - [ ] Apartado **Settings** para habilitar la integración e introducir
       `client-id`, `client-secret`, `refresh-token`. Migración
-      `002-suunto-integration`.
+      `003-suunto-integration` (001/002 ya usados por users/workouts).
 - [ ] Almacenamiento seguro de credenciales (cifrado en reposo).
 - [ ] Cliente OAuth: refresco de token y llamadas a la API de Suunto.
 - [ ] Sincronización de workouts: importar entrenos y mapearlos al modelo

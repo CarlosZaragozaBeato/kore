@@ -219,20 +219,26 @@ roundtrip export/import) + flujo real; build y lint frontend limpios.
 
 ---
 
-### Fase 7 — Integración con agentes de IA
+### Fase 7 — Integración con agentes de IA ✅ (completada)
 
 Objetivo: que agentes puedan planificar y analizar sobre tus datos. Este es el
 propósito último de mantener todo en JSON.
 
-- [ ] Documentar y versionar los esquemas JSON de todos los recursos.
-- [ ] API estable y descriptiva (contrato claro de lectura/escritura por
-      recurso) que un agente pueda consumir.
-- [ ] Casos de uso: un agente lee tus entrenos y genera un plan (Fase 4); analiza
-      carga y sugiere descarga; propone dietas (Fase 6) según tu volumen.
-- [ ] Import de recursos generados por agentes reutilizando el flujo de la Fase 1.
+- [x] Esquemas JSON versionados (`schemaVersion` del export, historial 1→4) y
+      documentados en `docs/AGENTS.md`.
+- [x] API descriptiva: OpenAPI en `/q/openapi` + Swagger UI en `/q/swagger-ui`,
+      y un **manifest** (`GET /api/v1/agent/manifest`) con el mapa estable de
+      recursos y cómo leerlos/escribirlos.
+- [x] Casos de uso cubiertos: `GET /api/v1/agent/context` da sesión completa +
+      analítica en una llamada (para generar un plan, analizar carga, proponer
+      dieta).
+- [x] Import de recursos generados por agentes: el `POST` de cada recurso, más
+      `POST /session/import` para sesiones completas (flujo de la Fase 1).
 
-**Entregable:** un agente puede exportar tus datos, razonar sobre ellos y
-devolver planes/dietas que la app importa sin fricción.
+**Entregable:** ✅ un agente descubre la API por el manifest, lee todo por
+`/agent/context`, razona, y escribe con los `POST`/import. Verificado: 38 tests
+backend en verde (manifest público, context con sesión, OpenAPI servido). En el
+frontend, Ajustes muestra los endpoints de agente.
 
 ---
 

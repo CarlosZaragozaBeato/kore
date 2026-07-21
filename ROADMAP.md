@@ -242,16 +242,24 @@ frontend, Ajustes muestra los endpoints de agente.
 
 ---
 
-### Fase 8 — Mobile y Android
+### Fase 8 — Mobile y Android 🟡 (web móvil + PWA hechos; Android nativo pendiente)
 
 Objetivo: usar la app cómodamente en el móvil.
 
-- [ ] Web responsive / mobile-first pulido (ya usable desde Fase 1).
-- [ ] App Android nativa que consume el mismo backend.
-- [ ] Estrategia de sincronización/portabilidad entre dispositivos apoyada en
-      export/import (Fase 1).
+- [x] Web responsive / mobile-first pulido (barra de pestañas deslizable,
+      tablas con scroll, targets táctiles, sin zoom en iOS).
+- [x] **PWA instalable**: manifest + service worker → "Añadir a pantalla de
+      inicio" en Android/iOS; se abre como app, con shell offline. Encaja con la
+      filosofía self-hosted (sin tienda de apps).
+- [x] Portabilidad entre dispositivos vía export/import de sesión (Fase 1).
+- [ ] App Android **nativa**: fuera del alcance de este repo (backend + web).
+      Es un cliente nuevo con su propio toolchain (Android SDK/Kotlin) y repo
+      aparte, consumiendo el mismo backend y el mismo contrato (ver
+      `docs/AGENTS.md` y `/q/openapi`). La PWA cubre el uso en móvil mientras
+      tanto.
 
-**Entregable:** app Android funcional sobre el mismo backend y modelo de datos.
+**Entregable parcial:** ✅ la web es usable e instalable como app en el móvil.
+La app Android nativa queda como proyecto futuro separado.
 
 ---
 

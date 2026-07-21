@@ -136,18 +136,26 @@ exportan los entrenos ya sincronizados (son datos de entrenamiento).
 
 ---
 
-### Fase 3 — Análisis y rendimiento
+### Fase 3 — Análisis y rendimiento ✅ (completada)
 
 Objetivo: convertir el log en información útil.
 
-- [ ] Métricas por entreno (ritmo medio, splits, zonas de FC si hay datos).
-- [ ] Resúmenes agregados: semana / mes / temporada.
-- [ ] Training load y tendencias de carga a lo largo del tiempo (agregable
-      entre fuentes: manual + Suunto).
-- [ ] Dashboard con evolución de volumen, ritmo y carga.
-- [ ] Todos los resúmenes exportables como JSON.
+- [x] Métricas por entreno: ritmo medio (derivado). _Splits y zonas de FC
+      quedan fuera: solo guardamos el resumen del entreno, no series
+      temporales._
+- [x] Resúmenes agregados: semanal (últimas 12) y mensual (últimos 6), con
+      entrenos, distancia, tiempo, ritmo medio y carga.
+- [x] Training load (sRPE = duración·RPE, con RPE estimado cuando falta) y
+      tendencia semanal; agrega entre fuentes (manual + Suunto).
+- [x] Dashboard: tarjetas de totales + gráficos de volumen y carga semanal +
+      tabla mensual.
+- [x] Resumen exportable como JSON (endpoint crudo `/analytics/summary` +
+      botón "Exportar resumen").
 
-**Entregable:** pantalla de rendimiento con tendencias y resúmenes exportables.
+**Entregable:** ✅ pantalla de rendimiento con tendencias y resumen exportable.
+Verificado: 18 tests backend en verde (totales, carga y bucket semanal);
+build y lint frontend limpios. Sin migraciones nuevas (todo derivado de
+`workouts`). Fórmula de carga aislada en `TrainingLoad` para cambiarla fácil.
 
 ---
 

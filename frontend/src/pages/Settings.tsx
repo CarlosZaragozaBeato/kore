@@ -138,6 +138,27 @@ export default function Settings() {
 
       {info && <p className="ok">{info}</p>}
       {error && <p className="error">{error}</p>}
+
+      <h2 style={{ marginTop: '2rem' }}>Integración con agentes</h2>
+      <p className="muted">
+        Tus datos son accesibles por API para que un agente los lea y escriba.
+        Envía el header <code>X-CCollector-Username</code> en cada petición.
+      </p>
+      <ul className="timeline">
+        <li>
+          <code>GET /api/v1/agent/manifest</code>
+          <span className="muted">mapa de recursos (sin sesión)</span>
+        </li>
+        <li>
+          <code>GET /api/v1/agent/context</code>
+          <span className="muted">toda tu sesión + analítica en una llamada</span>
+        </li>
+        <li>
+          <code>GET /q/openapi</code>
+          <span className="muted">contrato OpenAPI · UI en /q/swagger-ui</span>
+        </li>
+      </ul>
+      <p className="muted">Detalles y flujos en docs/AGENTS.md.</p>
     </section>
   )
 }

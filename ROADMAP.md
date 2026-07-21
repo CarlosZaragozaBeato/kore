@@ -33,31 +33,35 @@ Estos principios condicionan todas las fases y no se negocian:
 
 ## Stack actual (bootstrap ya en marcha)
 
-- **Backend:** Quarkus 3.37 (Java), Liquibase para migraciones, Postgres como
-  base de datos. Paquete base `com.zensyra.ccollector.core` organizado por
-  dominio (`domain`, `dto`, `repository`, `resource`, `service`, `exception`).
+- **Backend:** Quarkus 3.37 (Java 21), Liquibase para migraciones, **SQLite**
+  como base de datos (fichero `backend/local.db`, cero infraestructura, portable
+  — encaja con la filosofía self-hosted). Paquete base
+  `com.zensyra.ccollector.core` organizado por dominio (`dto`, `resource`,
+  `exception`, `rest`; `domain`/`repository`/`service` llegan en Fase 1).
 - **Frontend:** React 19 + Vite + TypeScript, oxlint como linter.
-- **Migraciones reservadas:** `001-create-users`, `002-suunto-integration`.
-
-El esqueleto actual tiene la estructura de paquetes de `auth` esbozada y el
-datasource aún sin configurar (`migrate-at-start=false`) hasta cerrar la Fase 0.
+- **Arranque:** script `./up` levanta backend (`:8080`) y frontend (`:5173`)
+  juntos; Vite proxya `/api` al backend.
 
 ---
 
 ## Fases
 
-### Fase 0 — Fundaciones ✅ (en curso)
+### Fase 0 — Fundaciones ✅ (completada)
 
 Objetivo: que el proyecto arranque, compile y migre contra base de datos.
 
-- [ ] Configurar datasource Postgres y activar `migrate-at-start`.
-- [ ] `docker-compose` para levantar Postgres en local con un comando.
-- [ ] Health check y arranque verificado del backend.
-- [ ] Frontend conectado al backend (proxy dev de Vite, variable de API base).
-- [ ] Convención de respuestas API (`ResponseDTO`) y manejo de errores.
-- [ ] Pipeline mínimo de calidad: tests backend (JUnit5), lint frontend.
+- [x] Configurar datasource SQLite y activar `migrate-at-start`.
+- [x] Sin infraestructura: SQLite en fichero, no hace falta Docker.
+- [x] Health check (`/q/health`) y arranque verificado del backend.
+- [x] Frontend conectado al backend (proxy dev de Vite, `VITE_API_BASE`).
+- [x] Convención de respuestas API (`ResponseDTO`) y `GlobalExceptionMapper`.
+- [x] Pipeline mínimo de calidad: tests backend (JUnit5 + rest-assured), lint
+      frontend (oxlint).
 
-**Entregable:** `./up` levanta backend + frontend + DB y la migración corre.
+**Entregable:** `./up` levanta backend + frontend y la migración corre. ✅
+Verificado: `/api/v1/ping` responde directo y vía proxy Vite; health UP con la
+conexión a la base de datos UP; 2 tests backend en verde; build y lint frontend
+limpios.
 
 ---
 

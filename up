@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Levanta backend (Quarkus dev, :8080) y frontend (Vite dev, :5173) juntos.
+# Ctrl-C detiene ambos.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cleanup() { kill 0 2>/dev/null || true; }
+trap cleanup EXIT INT TERM
+
+echo "→ backend  http://localhost:8080  (API en /api/v1, health en /q/health)"
+(
+  cd "$ROOT/backend"
+  # .mise.toml fija Java 21; usa mise si está disponible.
+  if command -v mise >/dev/null 2>&1; then
+    exec mise exec -- ./mvnw -q quarkus:dev
+  else
+    exec ./mvnw -q quarkus:dev
+  fi
+) &
+
+echo "→ frontend http://localhost:5173"
+(
+  cd "$ROOT/frontend"
+  [ -d node_modules ] || npm install
+  exec npm run dev
+) &
+
+wait

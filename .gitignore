@@ -1,3 +1,4 @@
 .env
 .idea/
 *.iml
+/backend/local.db

@@ -33,11 +33,17 @@ class GymResourceTest {
     void exercise_crud() {
         String user = freshUser();
         int id = given().header(HEADER, user).contentType("application/json")
-                .body("{\"name\":\"Sentadilla\",\"muscleGroup\":\"Piernas\",\"equipment\":\"Peso corporal\"}")
+                .body("{\"name\":\"Sentadilla\",\"muscleGroup\":\"Piernas\",\"equipment\":\"Peso corporal\","
+                        + "\"imageUrl\":\"https://x/sentadilla.gif\","
+                        + "\"instructions\":\"Baja con la espalda neutra y sube empujando el suelo.\","
+                        + "\"metValue\":5.0}")
                 .when().post("/api/v1/exercises")
                 .then().statusCode(200)
                 .body("data.name", is("Sentadilla"))
                 .body("data.muscleGroup", is("Piernas"))
+                .body("data.imageUrl", is("https://x/sentadilla.gif"))
+                .body("data.instructions", is("Baja con la espalda neutra y sube empujando el suelo."))
+                .body("data.metValue", is(5.0f))
                 .extract().path("data.id");
 
         given().header(HEADER, user).when().get("/api/v1/exercises")
@@ -46,6 +52,20 @@ class GymResourceTest {
         given().header(HEADER, user).when().delete("/api/v1/exercises/" + id).then().statusCode(200);
         given().header(HEADER, user).when().get("/api/v1/exercises")
                 .then().statusCode(200).body("data.size()", is(0));
+    }
+
+    @Test
+    void exercise_seed_loads_examples_and_is_idempotent() {
+        String user = freshUser();
+        given().header(HEADER, user).when().post("/api/v1/exercises/seed")
+                .then().statusCode(200)
+                .body("data.added", is(21))
+                .body("data.skipped", is(0));
+        // segunda siembra no duplica
+        given().header(HEADER, user).when().post("/api/v1/exercises/seed")
+                .then().statusCode(200)
+                .body("data.added", is(0))
+                .body("data.skipped", is(21));
     }
 
     @Test
@@ -94,6 +114,28 @@ class GymResourceTest {
     }
 
     @Test
+    void strength_session_can_be_planned_for_a_future_day() {
+        String user = freshUser();
+        // sin estado explícito, se registra como realizada (DONE)
+        given().header(HEADER, user).contentType("application/json")
+                .body("{\"date\":\"2026-07-20\",\"notes\":\"hecho\"}")
+                .when().post("/api/v1/strength-sessions")
+                .then().statusCode(200)
+                .body("data.status", is("DONE"));
+
+        // planificar gimnasio para un día concreto del calendario
+        given().header(HEADER, user).contentType("application/json")
+                .body("{\"date\":\"2026-08-01\",\"status\":\"PLANNED\",\"notes\":\"piernas\"}")
+                .when().post("/api/v1/strength-sessions")
+                .then().statusCode(200)
+                .body("data.status", is("PLANNED"));
+
+        given().header(HEADER, user).when().get("/api/v1/strength-sessions")
+                .then().statusCode(200).body("data.size()", is(2))
+                .body("data.findAll { it.status == 'PLANNED' }.size()", is(1));
+    }
+
+    @Test
     void strength_session_rejects_foreign_routine() {
         String user = freshUser();
         given().header(HEADER, user).contentType("application/json")
@@ -114,7 +156,7 @@ class GymResourceTest {
 
         given().header(HEADER, user).when().get("/api/v1/session/export")
                 .then().statusCode(200)
-                .body("schemaVersion", is(4))
+                .body("schemaVersion", is(15))
                 .body("exercises.size()", is(1))
                 .body("routines.size()", is(1))
                 .body("routines[0].items[0].exerciseName", is("Press banca"));
@@ -132,8 +174,10 @@ class GymResourceTest {
                 .then().statusCode(200)
                 .body("data.size()", is(1))
                 .body("data[0].items[0].exerciseName", is("Remo"));
+        // documento v3 (sin estado) → la sesión se asume realizada (DONE)
         given().header(HEADER, imported).when().get("/api/v1/strength-sessions")
                 .then().statusCode(200).body("data.size()", is(1))
-                .body("data[0].routineName", is("Tira"));
+                .body("data[0].routineName", is("Tira"))
+                .body("data[0].status", is("DONE"));
     }
 }

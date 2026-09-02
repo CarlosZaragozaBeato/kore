@@ -1,7 +1,7 @@
 // Service worker mínimo: hace la app instalable y da un shell offline.
 // La API (/api) y los endpoints de infra (/q) van SIEMPRE a red — nunca se
 // cachean, para no servir datos obsoletos.
-const CACHE = 'ccollector-shell-v1'
+const CACHE = 'kore-shell-v1'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.add('/')).then(() => self.skipWaiting()))

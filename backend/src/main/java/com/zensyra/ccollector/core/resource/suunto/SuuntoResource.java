@@ -2,9 +2,11 @@ package com.zensyra.ccollector.core.resource.suunto;
 
 import com.zensyra.ccollector.core.domain.auth.CollectorUser;
 import com.zensyra.ccollector.core.dto.response.ResponseDTO;
+import com.zensyra.ccollector.core.dto.suunto.PurgeResultDTO;
 import com.zensyra.ccollector.core.dto.suunto.SuuntoSettingsDTO;
 import com.zensyra.ccollector.core.dto.suunto.SuuntoSettingsRequest;
 import com.zensyra.ccollector.core.dto.suunto.SyncResultDTO;
+import com.zensyra.ccollector.core.service.suunto.SuuntoRetentionService;
 import com.zensyra.ccollector.core.service.suunto.SuuntoSettingsService;
 import com.zensyra.ccollector.core.service.suunto.SuuntoSyncService;
 import com.zensyra.ccollector.core.session.CurrentSession;
@@ -22,13 +24,16 @@ public class SuuntoResource {
 
     private final SuuntoSettingsService settingsService;
     private final SuuntoSyncService syncService;
+    private final SuuntoRetentionService retentionService;
     private final CurrentSession session;
 
     public SuuntoResource(SuuntoSettingsService settingsService,
                           SuuntoSyncService syncService,
+                          SuuntoRetentionService retentionService,
                           CurrentSession session) {
         this.settingsService = settingsService;
         this.syncService = syncService;
+        this.retentionService = retentionService;
         this.session = session;
     }
 
@@ -52,5 +57,17 @@ public class SuuntoResource {
     public ResponseDTO<SyncResultDTO> sync() {
         CollectorUser user = session.require();
         return ResponseDTO.ok(syncService.sync(user.id));
+    }
+
+    /**
+     * Aplica la retención mínima: borra los entrenos de Suunto anteriores a la
+     * ventana configurada (por defecto, mes actual + anterior). Es recuperable
+     * con un re-sync, así que evita crecer sin límite.
+     */
+    @POST
+    @Path("/purge")
+    public ResponseDTO<PurgeResultDTO> purge() {
+        Long userId = session.requireUserId();
+        return ResponseDTO.ok(retentionService.purge(userId));
     }
 }

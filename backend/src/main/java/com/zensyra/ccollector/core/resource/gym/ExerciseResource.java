@@ -1,5 +1,6 @@
 package com.zensyra.ccollector.core.resource.gym;
 
+import com.zensyra.ccollector.core.dto.catalog.SeedResult;
 import com.zensyra.ccollector.core.dto.gym.ExerciseDTO;
 import com.zensyra.ccollector.core.dto.gym.ExerciseRequest;
 import com.zensyra.ccollector.core.dto.response.ResponseDTO;
@@ -39,6 +40,13 @@ public class ExerciseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public ResponseDTO<ExerciseDTO> create(ExerciseRequest request) {
         return ResponseDTO.ok(ExerciseDTO.from(exercises.create(session.requireUserId(), request)));
+    }
+
+    /** Siembra el catálogo con ejercicios de ejemplo (calentamiento/fuerza/recuperación). */
+    @POST
+    @Path("/seed")
+    public ResponseDTO<SeedResult> seed() {
+        return ResponseDTO.ok(exercises.seed(session.requireUserId()));
     }
 
     @PUT

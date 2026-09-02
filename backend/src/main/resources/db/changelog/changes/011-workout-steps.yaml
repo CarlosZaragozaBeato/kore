@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-workout-steps
+      author: ccollector
+      changes:
+        # Extracción Suunto en profundidad (Fase 18): el resumen de /v2/workouts
+        # trae stepCount. De él (con distancia y tiempo) derivamos cadencia y
+        # longitud de zancada al presentar, sin columnas extra.
+        - addColumn:
+            tableName: workouts
+            columns:
+              - column:
+                  name: step_count
+                  type: INTEGER

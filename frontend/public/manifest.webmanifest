@@ -1,13 +1,13 @@
 {
-  "name": "CCollector",
-  "short_name": "CCollector",
-  "description": "Plataforma personal de entrenamiento, planificación y nutrición.",
+  "name": "Kore",
+  "short_name": "Kore",
+  "description": "App personal de entrenamiento y control de vida para running, triatlón e ironman.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f6f7f9",
-  "theme_color": "#2f6fed",
+  "background_color": "#0E1B2A",
+  "theme_color": "#0E1B2A",
   "lang": "es",
   "icons": [
     {

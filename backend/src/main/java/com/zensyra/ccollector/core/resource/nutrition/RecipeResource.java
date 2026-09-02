@@ -1,8 +1,10 @@
 package com.zensyra.ccollector.core.resource.nutrition;
 
 import com.zensyra.ccollector.core.dto.nutrition.RecipeDTO;
+import com.zensyra.ccollector.core.dto.nutrition.RecipeRecommendationDTO;
 import com.zensyra.ccollector.core.dto.nutrition.RecipeRequest;
 import com.zensyra.ccollector.core.dto.response.ResponseDTO;
+import com.zensyra.ccollector.core.service.nutrition.RecipeRecommendationService;
 import com.zensyra.ccollector.core.service.nutrition.RecipeService;
 import com.zensyra.ccollector.core.session.CurrentSession;
 import jakarta.ws.rs.Consumes;
@@ -22,16 +24,36 @@ import java.util.List;
 public class RecipeResource {
 
     private final RecipeService recipes;
+    private final RecipeRecommendationService recommendations;
     private final CurrentSession session;
 
-    public RecipeResource(RecipeService recipes, CurrentSession session) {
+    public RecipeResource(RecipeService recipes, RecipeRecommendationService recommendations,
+                          CurrentSession session) {
         this.recipes = recipes;
+        this.recommendations = recommendations;
         this.session = session;
     }
 
     @GET
     public ResponseDTO<List<RecipeDTO>> list() {
         return ResponseDTO.ok(recipes.list(session.requireUserId()));
+    }
+
+    /**
+     * Recetas sugeridas por el contexto (entreno/actividad/objetivo). Documento
+     * crudo de solo lectura, sin envoltorio (para la app y los agentes).
+     */
+    @GET
+    @Path("/recommend")
+    public RecipeRecommendationDTO recommend() {
+        return recommendations.recommend(session.requireUserId());
+    }
+
+    /** Recetas que usan un ingrediente del catálogo (recomendación por ingrediente). */
+    @GET
+    @Path("/by-ingredient/{ingredientId}")
+    public ResponseDTO<List<RecipeDTO>> byIngredient(@PathParam("ingredientId") Long ingredientId) {
+        return ResponseDTO.ok(recipes.listByIngredient(session.requireUserId(), ingredientId));
     }
 
     @GET

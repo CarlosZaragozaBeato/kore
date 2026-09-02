@@ -83,6 +83,36 @@ class PlanResourceTest {
     }
 
     @Test
+    void create_persists_structured_steps() {
+        String user = freshUser();
+        // "4 km cal + 200 m ×5 /1'": un paso WARMUP y un paso INTERVAL con repeat/descanso.
+        int id = given().header(HEADER, user).contentType("application/json")
+                .body("{\"name\":\"Series\",\"startDate\":\"2026-07-13\","
+                        + "\"sessions\":[{\"date\":\"2026-07-14\",\"type\":\"RUNNING\",\"steps\":["
+                        + "{\"kind\":\"WARMUP\",\"targetDistanceMeters\":4000},"
+                        + "{\"kind\":\"INTERVAL\",\"repeat\":5,\"targetDistanceMeters\":200,"
+                        + "\"recoverySeconds\":60,\"targetPaceMinSecPerKm\":220,\"targetPaceMaxSecPerKm\":230}]}]}")
+                .when().post("/api/v1/plans")
+                .then().statusCode(200)
+                .body("data.sessions[0].steps.size()", is(2))
+                .body("data.sessions[0].steps[0].kind", is("WARMUP"))
+                .body("data.sessions[0].steps[0].orderIndex", is(0))
+                .body("data.sessions[0].steps[1].kind", is("INTERVAL"))
+                .body("data.sessions[0].steps[1].repeat", is(5))
+                .body("data.sessions[0].steps[1].recoverySeconds", is(60))
+                .body("data.sessions[0].steps[1].targetPaceMinSecPerKm", is(220))
+                .extract().path("data.id");
+
+        // los pasos sobreviven a la lectura y al export portable
+        given().header(HEADER, user).when().get("/api/v1/plans/" + id)
+                .then().statusCode(200)
+                .body("data.sessions[0].steps.size()", is(2));
+        given().header(HEADER, user).when().get("/api/v1/session/export")
+                .then().statusCode(200)
+                .body("plans[0].sessions[0].steps[1].repeat", is(5));
+    }
+
+    @Test
     void rejects_plan_without_name() {
         String user = freshUser();
         given().header(HEADER, user).contentType("application/json")

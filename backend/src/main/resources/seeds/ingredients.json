@@ -1,0 +1,22 @@
+[
+  { "name": "Pechuga de pollo", "baseUnit": "GRAM", "calories": 165, "protein": 31, "carbs": 0, "fat": 3.6, "sodium": 74 },
+  { "name": "Huevo", "baseUnit": "GRAM", "calories": 155, "protein": 13, "carbs": 1.1, "fat": 11, "sodium": 124 },
+  { "name": "Arroz blanco cocido", "baseUnit": "GRAM", "calories": 130, "protein": 2.7, "carbs": 28, "fat": 0.3, "fiber": 0.4 },
+  { "name": "Avena en copos", "baseUnit": "GRAM", "calories": 389, "protein": 16.9, "carbs": 66, "fat": 6.9, "fiber": 10.6, "sugars": 0.99 },
+  { "name": "Pasta cocida", "baseUnit": "GRAM", "calories": 158, "protein": 5.8, "carbs": 31, "fat": 0.9, "fiber": 1.8 },
+  { "name": "Patata", "baseUnit": "GRAM", "calories": 77, "protein": 2, "carbs": 17, "fat": 0.1, "fiber": 2.2 },
+  { "name": "Pan integral", "baseUnit": "GRAM", "calories": 247, "protein": 13, "carbs": 41, "fat": 3.4, "fiber": 7 },
+  { "name": "Plátano", "baseUnit": "GRAM", "calories": 89, "protein": 1.1, "carbs": 23, "fat": 0.3, "fiber": 2.6, "sugars": 12 },
+  { "name": "Manzana", "baseUnit": "GRAM", "calories": 52, "protein": 0.3, "carbs": 14, "fat": 0.2, "fiber": 2.4, "sugars": 10 },
+  { "name": "Brócoli", "baseUnit": "GRAM", "calories": 34, "protein": 2.8, "carbs": 7, "fat": 0.4, "fiber": 2.6 },
+  { "name": "Lentejas cocidas", "baseUnit": "GRAM", "calories": 116, "protein": 9, "carbs": 20, "fat": 0.4, "fiber": 7.9 },
+  { "name": "Garbanzos cocidos", "baseUnit": "GRAM", "calories": 164, "protein": 8.9, "carbs": 27, "fat": 2.6, "fiber": 7.6 },
+  { "name": "Atún al natural", "baseUnit": "GRAM", "calories": 116, "protein": 26, "carbs": 0, "fat": 1, "sodium": 247 },
+  { "name": "Salmón", "baseUnit": "GRAM", "calories": 208, "protein": 20, "carbs": 0, "fat": 13, "sodium": 59 },
+  { "name": "Ternera magra", "baseUnit": "GRAM", "calories": 250, "protein": 26, "carbs": 0, "fat": 15, "sodium": 72 },
+  { "name": "Yogur natural", "baseUnit": "GRAM", "calories": 61, "protein": 3.5, "carbs": 4.7, "fat": 3.3, "sugars": 4.7 },
+  { "name": "Queso fresco batido 0%", "baseUnit": "GRAM", "calories": 47, "protein": 8, "carbs": 4, "fat": 0.2 },
+  { "name": "Almendras", "baseUnit": "GRAM", "calories": 579, "protein": 21, "carbs": 22, "fat": 50, "fiber": 12.5 },
+  { "name": "Leche entera", "baseUnit": "MILLILITER", "calories": 61, "protein": 3.2, "carbs": 4.8, "fat": 3.3, "sugars": 4.8 },
+  { "name": "Aceite de oliva virgen extra", "baseUnit": "MILLILITER", "calories": 884, "protein": 0, "carbs": 0, "fat": 100 }
+]

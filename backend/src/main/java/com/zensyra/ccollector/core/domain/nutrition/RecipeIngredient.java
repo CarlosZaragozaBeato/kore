@@ -28,4 +28,8 @@ public class RecipeIngredient {
     public Double quantity;
 
     public String unit;
+
+    /** Enlace opcional al ingrediente del catálogo (para derivar macros). */
+    @Column(name = "ingredient_id")
+    public Long ingredientId;
 }

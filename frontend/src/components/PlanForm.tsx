@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { Plan, PlanRequest, WorkoutType } from '../api'
+import { toStepDraft, toStepRequest, type StepDraft } from '../stepDraft'
+import StepsEditor from './StepsEditor'
 
 const TYPES: WorkoutType[] = ['RUNNING', 'STRENGTH', 'OTHER']
 
@@ -10,6 +12,8 @@ interface Row {
   min: string
   description: string
   done: boolean
+  steps: StepDraft[]
+  open: boolean
 }
 
 function toRows(plan: Plan | null): Row[] {
@@ -21,6 +25,8 @@ function toRows(plan: Plan | null): Row[] {
     min: s.targetDurationSeconds != null ? String(Math.round(s.targetDurationSeconds / 60)) : '',
     description: s.description ?? '',
     done: s.done,
+    steps: (s.steps ?? []).map(toStepDraft),
+    open: false,
   }))
 }
 
@@ -44,7 +50,7 @@ export default function PlanForm({ initial, busy, onSave, onCancel }: Props) {
   const [rows, setRows] = useState<Row[]>(toRows(initial))
 
   function addRow() {
-    setRows([...rows, { date: startDate, type: 'RUNNING', km: '', min: '', description: '', done: false }])
+    setRows([...rows, { date: startDate, type: 'RUNNING', km: '', min: '', description: '', done: false, steps: [], open: false }])
   }
 
   function updateRow(i: number, patch: Partial<Row>) {
@@ -53,6 +59,10 @@ export default function PlanForm({ initial, busy, onSave, onCancel }: Props) {
 
   function removeRow(i: number) {
     setRows(rows.filter((_, idx) => idx !== i))
+  }
+
+  function setSteps(i: number, steps: StepDraft[]) {
+    setRows(rows.map((r, idx) => (idx === i ? { ...r, steps } : r)))
   }
 
   function submit(e: React.FormEvent) {
@@ -68,6 +78,7 @@ export default function PlanForm({ initial, busy, onSave, onCancel }: Props) {
         targetDistanceMeters: num(r.km) == null ? null : Math.round((num(r.km) as number) * 1000),
         targetDurationSeconds: num(r.min) == null ? null : (num(r.min) as number) * 60,
         description: r.description.trim() === '' ? null : r.description.trim(),
+        steps: r.steps.map(toStepRequest),
       })),
     })
   }
@@ -97,22 +108,29 @@ export default function PlanForm({ initial, busy, onSave, onCancel }: Props) {
       <h4>Sesiones planificadas</h4>
       {rows.length === 0 && <p className="muted">Sin sesiones. Añade la primera.</p>}
       {rows.map((r, i) => (
-        <div className="session-row" key={i}>
-          {initial && (r.done ? <span className="done" title="Realizada">✓</span> : <span className="pending">○</span>)}
-          <input type="date" value={r.date} onChange={(e) => updateRow(i, { date: e.target.value })} required />
-          <select value={r.type} onChange={(e) => updateRow(i, { type: e.target.value as WorkoutType })}>
-            {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <input type="number" step="0.01" min="0" placeholder="km" value={r.km} onChange={(e) => updateRow(i, { km: e.target.value })} />
-          <input type="number" min="0" placeholder="min" value={r.min} onChange={(e) => updateRow(i, { min: e.target.value })} />
-          <input placeholder="descripción" value={r.description} onChange={(e) => updateRow(i, { description: e.target.value })} />
-          <button type="button" className="link danger" onClick={() => removeRow(i)}>
-            ✕
-          </button>
+        <div className="session-block" key={i}>
+          <div className="session-row">
+            {initial && (r.done ? <span className="done" title="Realizada">✓</span> : <span className="pending">○</span>)}
+            <input type="date" value={r.date} onChange={(e) => updateRow(i, { date: e.target.value })} required />
+            <select value={r.type} onChange={(e) => updateRow(i, { type: e.target.value as WorkoutType })}>
+              {TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input type="number" step="0.01" min="0" placeholder="km" value={r.km} onChange={(e) => updateRow(i, { km: e.target.value })} />
+            <input type="number" min="0" placeholder="min" value={r.min} onChange={(e) => updateRow(i, { min: e.target.value })} />
+            <input placeholder="descripción" value={r.description} onChange={(e) => updateRow(i, { description: e.target.value })} />
+            <button type="button" className="link" onClick={() => updateRow(i, { open: !r.open })} title="Pasos estructurados">
+              Pasos{r.steps.length > 0 ? ` (${r.steps.length})` : ''}
+            </button>
+            <button type="button" className="link danger" onClick={() => removeRow(i)}>
+              ✕
+            </button>
+          </div>
+
+          {r.open && <StepsEditor steps={r.steps} onChange={(steps) => setSteps(i, steps)} />}
         </div>
       ))}
       <button type="button" className="secondary" onClick={addRow}>

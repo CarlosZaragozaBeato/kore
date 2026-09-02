@@ -34,6 +34,15 @@ public class RecipeService {
         return toDTO(require(userId, id));
     }
 
+    /** Recetas del usuario que usan un ingrediente del catálogo. */
+    public List<RecipeDTO> listByIngredient(Long userId, Long ingredientId) {
+        java.util.Set<Long> ids = new java.util.HashSet<>(ingredients.recipeIdsByIngredient(ingredientId));
+        return recipes.listByUser(userId).stream()
+                .filter(r -> ids.contains(r.id))
+                .map(this::toDTO)
+                .toList();
+    }
+
     @Transactional
     public RecipeDTO create(Long userId, RecipeRequest req) {
         validate(req);
@@ -94,6 +103,7 @@ public class RecipeService {
             ingredient.name = ir.name().trim();
             ingredient.quantity = ir.quantity();
             ingredient.unit = blankToNull(ir.unit());
+            ingredient.ingredientId = ir.ingredientId();
             ingredients.persist(ingredient);
         }
     }
@@ -106,7 +116,7 @@ public class RecipeService {
 
     private RecipeDTO toDTO(Recipe r) {
         List<IngredientDTO> ing = ingredients.listByRecipe(r.id).stream()
-                .map(i -> new IngredientDTO(i.name, i.quantity, i.unit))
+                .map(i -> new IngredientDTO(i.name, i.quantity, i.unit, i.ingredientId))
                 .toList();
         return new RecipeDTO(r.id, r.name, r.description, r.servings, r.calories,
                 r.protein, r.carbs, r.fat, r.steps, r.createdAt, ing);

@@ -18,4 +18,8 @@ public class ExerciseRepository implements PanacheRepository<Exercise> {
     public Optional<Exercise> findByIdAndUser(Long id, Long userId) {
         return find("id = ?1 and userId = ?2", id, userId).firstResultOptional();
     }
+
+    public Optional<Exercise> findByNameAndUser(String name, Long userId) {
+        return find("name = ?1 and userId = ?2", name, userId).firstResultOptional();
+    }
 }

@@ -15,6 +15,6 @@ public record RecipeRequest(
         List<IngredientRequest> ingredients
 ) {
 
-    public record IngredientRequest(String name, Double quantity, String unit) {
+    public record IngredientRequest(String name, Double quantity, String unit, Long ingredientId) {
     }
 }

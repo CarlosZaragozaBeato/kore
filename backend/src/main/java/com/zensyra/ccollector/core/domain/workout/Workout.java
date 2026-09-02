@@ -43,6 +43,20 @@ public class Workout {
     @Column(name = "avg_heart_rate")
     public Integer avgHeartRate;
 
+    @Column(name = "max_heart_rate")
+    public Integer maxHeartRate;
+
+    /** Energía gastada en kcal (de Suunto; opcional en entrenos manuales). */
+    @Column(name = "energy_kcal")
+    public Double energyKcal;
+
+    /**
+     * Pasos totales del entreno (de Suunto). Con la distancia y el tiempo se
+     * derivan cadencia (pasos/min) y longitud de zancada (m/paso) al presentar.
+     */
+    @Column(name = "step_count")
+    public Integer stepCount;
+
     @Column(name = "perceived_effort")
     public Integer perceivedEffort;
 

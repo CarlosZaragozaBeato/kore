@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { Workout, WorkoutRequest, WorkoutType } from '../api'
+import { disciplineLabel } from '../discipline'
 
-const TYPES: WorkoutType[] = ['RUNNING', 'STRENGTH', 'OTHER']
+const TYPES: WorkoutType[] = ['RUNNING', 'CYCLING', 'SWIMMING', 'STRENGTH', 'OTHER']
 
 function today(): string {
   return new Date().toISOString().slice(0, 10)
@@ -32,6 +33,9 @@ export default function WorkoutForm({ initial, busy, onSubmit, onCancel }: Props
     initial?.durationSeconds != null ? String(initial.durationSeconds % 60) : '',
   )
   const [hr, setHr] = useState(initial?.avgHeartRate != null ? String(initial.avgHeartRate) : '')
+  const [maxHr, setMaxHr] = useState(initial?.maxHeartRate != null ? String(initial.maxHeartRate) : '')
+  const [kcal, setKcal] = useState(initial?.energyKcal != null ? String(initial.energyKcal) : '')
+  const [steps, setSteps] = useState(initial?.stepCount != null ? String(initial.stepCount) : '')
   const [effort, setEffort] = useState(
     initial?.perceivedEffort != null ? String(initial.perceivedEffort) : '',
   )
@@ -49,6 +53,9 @@ export default function WorkoutForm({ initial, busy, onSubmit, onCancel }: Props
       distanceMeters: km == null ? null : Math.round(km * 1000),
       durationSeconds,
       avgHeartRate: num(hr),
+      maxHeartRate: num(maxHr),
+      energyKcal: num(kcal),
+      stepCount: num(steps),
       perceivedEffort: num(effort),
       notes: notes.trim() === '' ? null : notes.trim(),
     })
@@ -67,7 +74,7 @@ export default function WorkoutForm({ initial, busy, onSubmit, onCancel }: Props
           <select value={type} onChange={(e) => setType(e.target.value as WorkoutType)}>
             {TYPES.map((t) => (
               <option key={t} value={t}>
-                {t}
+                {disciplineLabel(t)}
               </option>
             ))}
           </select>
@@ -86,6 +93,18 @@ export default function WorkoutForm({ initial, busy, onSubmit, onCancel }: Props
         <label>
           FC media (ppm)
           <input type="number" min="0" value={hr} onChange={(e) => setHr(e.target.value)} />
+        </label>
+        <label>
+          FC máx (ppm)
+          <input type="number" min="0" value={maxHr} onChange={(e) => setMaxHr(e.target.value)} />
+        </label>
+        <label>
+          Energía (kcal)
+          <input type="number" min="0" value={kcal} onChange={(e) => setKcal(e.target.value)} />
+        </label>
+        <label>
+          Pasos
+          <input type="number" min="0" value={steps} onChange={(e) => setSteps(e.target.value)} />
         </label>
         <label>
           Esfuerzo (1-10)

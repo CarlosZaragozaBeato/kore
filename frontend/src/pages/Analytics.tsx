@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { getAnalytics, type Dashboard, type PeriodSummary } from '../api'
 import { formatDuration, formatPace, metersToKm } from '../format'
+import LoadComparison from '../components/LoadComparison'
+import Correlations from '../components/Correlations'
+import { Empty, Loading } from '../components/state'
+
+type Sub = 'summary' | 'compare' | 'correlations'
 
 function BarChart({
   title,
@@ -33,6 +38,7 @@ function BarChart({
 }
 
 export default function Analytics() {
+  const [sub, setSub] = useState<Sub>('summary')
   const [data, setData] = useState<Dashboard | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,17 +48,14 @@ export default function Analytics() {
       .catch((err) => setError((err as Error).message))
   }, [])
 
-  if (error) return <p className="error">{error}</p>
-  if (!data) return <p className="muted">Cargando…</p>
-
-  const t = data.totals
+  const t = data?.totals
 
   function exportSummary() {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ccollector-resumen-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `kore-resumen-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -61,13 +64,36 @@ export default function Analytics() {
     <section>
       <div className="section-head">
         <h2>Análisis</h2>
-        <button className="secondary" onClick={exportSummary} disabled={t.workouts === 0}>
-          Exportar resumen
+        {sub === 'summary' && (
+          <button className="secondary" onClick={exportSummary} disabled={!t || t.workouts === 0}>
+            Exportar resumen
+          </button>
+        )}
+      </div>
+
+      <div className="nav" style={{ marginBottom: '1rem' }}>
+        <button className={sub === 'summary' ? 'tab active' : 'tab'} onClick={() => setSub('summary')}>
+          Resumen
+        </button>
+        <button className={sub === 'compare' ? 'tab active' : 'tab'} onClick={() => setSub('compare')}>
+          Comparativa
+        </button>
+        <button
+          className={sub === 'correlations' ? 'tab active' : 'tab'}
+          onClick={() => setSub('correlations')}
+        >
+          Correlaciones
         </button>
       </div>
 
-      {t.workouts === 0 ? (
-        <p className="muted">Aún no hay datos. Registra o sincroniza entrenamientos.</p>
+      {sub === 'compare' && <LoadComparison />}
+      {sub === 'correlations' && <Correlations />}
+
+      {sub === 'summary' && error && <p className="error">{error}</p>}
+      {sub === 'summary' && !error && !data && <Loading />}
+
+      {sub === 'summary' && data && t && (t.workouts === 0 ? (
+        <Empty icon="analytics">Aún no hay datos. Registra o sincroniza entrenamientos.</Empty>
       ) : (
         <>
           <div className="cards">
@@ -127,7 +153,7 @@ export default function Analytics() {
             </tbody>
           </table>
         </>
-      )}
+      ))}
     </section>
   )
 }

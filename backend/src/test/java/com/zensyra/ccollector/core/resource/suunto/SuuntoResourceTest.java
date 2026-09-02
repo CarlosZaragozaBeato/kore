@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -69,36 +70,98 @@ class SuuntoResourceTest {
     }
 
     @Test
-    void sync_imports_then_dedups() {
+    void sync_imports_then_backfills_without_duplicating() {
         configureSuunto();
         when(oauthClient.refresh(anyString(), anyString(), anyString()))
                 .thenReturn(new SuuntoTokenResponse("access-123", "bearer", "rt", 86400L, "workout"));
         when(apiClient.listWorkouts(anyString(), anyString()))
                 .thenReturn(new SuuntoWorkoutsResponse(List.of(
-                        new SuuntoWorkout("w1", 3, 1_600_000_000_000L, 10000.0, 3000.0, 150.0, 700.0),
-                        new SuuntoWorkout("w2", 3, 1_600_100_000_000L, 5000.0, 1500.0, 140.0, 350.0))));
+                        // activityId 1 = Running, FC anidada en hrdata, kcal en energyConsumption, pasos
+                        new SuuntoWorkout("w1", 1, 1_600_000_000_000L, 10000.0, 3000.0, 120.0, 110.0,
+                                700.0, new SuuntoWorkout.HrData(150.0, 175.0), 9000),
+                        // activityId 2 = Cycling
+                        new SuuntoWorkout("w2", 2, 1_600_100_000_000L, 5000.0, 1500.0, null, null,
+                                350.0, new SuuntoWorkout.HrData(140.0, 160.0), null))));
 
         // first sync imports both
         given().header(HEADER, user)
                 .when().post("/api/v1/suunto/sync")
                 .then().statusCode(200)
                 .body("data.imported", is(2))
+                .body("data.updated", is(0))
                 .body("data.skipped", is(0))
                 .body("data.total", is(2));
 
-        // workouts now present, tagged as SUUNTO
+        // workouts now present, tagged as SUUNTO, con FC (anidada), tipo mapeado
+        // desde activityId, pasos y cadencia/zancada derivadas.
         given().header(HEADER, user)
                 .when().get("/api/v1/workouts")
                 .then().statusCode(200)
                 .body("data.size()", is(2))
-                .body("data[0].source", is("SUUNTO"));
+                .body("data.source", hasItems("SUUNTO"))
+                .body("data.avgHeartRate", hasItems(150, 140))
+                .body("data.maxHeartRate", hasItems(175, 160))
+                .body("data.type", hasItems("RUNNING", "CYCLING"))
+                .body("data.stepCount", hasItems(9000))
+                // cadencia = 9000 pasos / 50 min = 180 spm; zancada = 10000/9000 ≈ 1.11 m
+                .body("data.avgCadenceSpm", hasItems(180))
+                .body("data.strideLengthMeters", hasItems(1.11f));
 
-        // second sync dedups (same source ids)
+        // second sync: mismos workoutKey pero datos corregidos -> backfill in-place
+        // (regresión: antes se ignoraban por dedup y quedaban obsoletos).
+        when(apiClient.listWorkouts(anyString(), anyString()))
+                .thenReturn(new SuuntoWorkoutsResponse(List.of(
+                        new SuuntoWorkout("w1", 1, 1_600_000_000_000L, 10000.0, 3000.0, 120.0, 110.0,
+                                700.0, new SuuntoWorkout.HrData(158.0, 182.0), 9200),
+                        new SuuntoWorkout("w2", 2, 1_600_100_000_000L, 5000.0, 1500.0, null, null,
+                                350.0, new SuuntoWorkout.HrData(140.0, 160.0), null))));
+
         given().header(HEADER, user)
                 .when().post("/api/v1/suunto/sync")
                 .then().statusCode(200)
                 .body("data.imported", is(0))
-                .body("data.skipped", is(2));
+                .body("data.updated", is(2))
+                .body("data.skipped", is(0));
+
+        // sin duplicados y con los valores rellenados
+        given().header(HEADER, user)
+                .when().get("/api/v1/workouts")
+                .then().statusCode(200)
+                .body("data.size()", is(2))
+                .body("data.avgHeartRate", hasItems(158))
+                .body("data.stepCount", hasItems(9200));
+    }
+
+    @Test
+    void purge_removes_old_suunto_but_keeps_manual() {
+        configureSuunto();
+        when(oauthClient.refresh(anyString(), anyString(), anyString()))
+                .thenReturn(new SuuntoTokenResponse("access-123", "bearer", "rt", 86400L, "workout"));
+        // startTime 1_600_000_000_000 ms = 2020-09 -> muy anterior a la ventana.
+        when(apiClient.listWorkouts(anyString(), anyString()))
+                .thenReturn(new SuuntoWorkoutsResponse(List.of(
+                        new SuuntoWorkout("old1", 1, 1_600_000_000_000L, 10000.0, 3000.0, null, null,
+                                700.0, new SuuntoWorkout.HrData(150.0, 175.0), 9000),
+                        new SuuntoWorkout("old2", 2, 1_600_100_000_000L, 5000.0, 1500.0, null, null,
+                                350.0, new SuuntoWorkout.HrData(140.0, 160.0), null))));
+        given().header(HEADER, user).when().post("/api/v1/suunto/sync").then().statusCode(200);
+
+        // Un entreno MANUAL de hoy: la retención no debe tocarlo nunca.
+        String today = java.time.LocalDate.now().toString();
+        given().header(HEADER, user).contentType("application/json")
+                .body("{\"date\":\"" + today + "\",\"type\":\"RUNNING\",\"distanceMeters\":8000,\"durationSeconds\":2400}")
+                .when().post("/api/v1/workouts").then().statusCode(200);
+
+        given().header(HEADER, user)
+                .when().post("/api/v1/suunto/purge")
+                .then().statusCode(200)
+                .body("data.purged", is(2));
+
+        given().header(HEADER, user)
+                .when().get("/api/v1/workouts")
+                .then().statusCode(200)
+                .body("data.size()", is(1))
+                .body("data[0].source", is("MANUAL"));
     }
 
     @Test

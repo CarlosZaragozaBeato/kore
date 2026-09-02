@@ -2,6 +2,7 @@ package com.zensyra.ccollector.core.service.gym;
 
 import com.zensyra.ccollector.core.domain.gym.Routine;
 import com.zensyra.ccollector.core.domain.gym.StrengthSession;
+import com.zensyra.ccollector.core.domain.gym.StrengthStatus;
 import com.zensyra.ccollector.core.dto.gym.StrengthSessionRequest;
 import com.zensyra.ccollector.core.repository.gym.RoutineRepository;
 import com.zensyra.ccollector.core.repository.gym.StrengthSessionRepository;
@@ -59,6 +60,7 @@ public class StrengthSessionService {
 
     private void apply(Long userId, StrengthSession s, StrengthSessionRequest req) {
         s.date = req.date();
+        s.status = req.status() != null ? req.status() : StrengthStatus.DONE;
         s.notes = req.notes() == null || req.notes().isBlank() ? null : req.notes().trim();
         if (req.routineId() != null) {
             Routine routine = routines.findByIdAndUser(req.routineId(), userId)

@@ -60,24 +60,29 @@ public class SuuntoSyncService {
         var suuntoWorkouts = fetchWorkouts(token, creds);
 
         int imported = 0;
+        int updated = 0;
         int skipped = 0;
         for (SuuntoWorkout sw : suuntoWorkouts) {
             if (sw.workoutKey() == null) {
                 skipped++;
                 continue;
             }
-            if (workouts.existsBySourceId(userId, WorkoutSource.SUUNTO, sw.workoutKey())) {
-                skipped++;
-                continue;
+            var existing = workouts.findBySourceId(userId, WorkoutSource.SUUNTO, sw.workoutKey());
+            if (existing.isPresent()) {
+                // Re-sync: rellena/corrige el entreno ya importado en vez de
+                // ignorarlo (FC, tipo, kcal y pasos que faltaban).
+                SuuntoWorkoutMapper.applyMetrics(existing.get(), sw);
+                updated++;
+            } else {
+                Workout w = SuuntoWorkoutMapper.toWorkout(sw, userId);
+                workouts.persist(w);
+                imported++;
             }
-            Workout w = SuuntoWorkoutMapper.toWorkout(sw, userId);
-            workouts.persist(w);
-            imported++;
         }
 
         Instant now = Instant.now();
         settingsService.markSynced(userId, now);
-        return new SyncResultDTO(imported, skipped, suuntoWorkouts.size(), now);
+        return new SyncResultDTO(imported, updated, skipped, suuntoWorkouts.size(), now);
     }
 
     private SuuntoTokenResponse refreshToken(Long userId, DecryptedCredentials creds) {

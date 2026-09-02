@@ -32,9 +32,43 @@ class AnalyticsResourceTest {
                 .when().post("/api/v1/workouts").then().statusCode(200);
     }
 
+    private void addActivity(String user, String date, int steps) {
+        given().header(HEADER, user).contentType("application/json")
+                .body("{\"date\":\"" + date + "\",\"steps\":" + steps + "}")
+                .when().post("/api/v1/activity/daily").then().statusCode(200);
+    }
+
     @Test
     void summary_requires_session() {
         given().when().get("/api/v1/analytics/summary").then().statusCode(401);
+    }
+
+    @Test
+    void correlations_requires_session() {
+        given().when().get("/api/v1/analytics/correlations").then().statusCode(401);
+    }
+
+    @Test
+    void correlations_cross_sections_by_week() {
+        String user = freshUser();
+        LocalDate thisMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        // 4 semanas con carga y pasos perfectamente correlacionados (crecen juntos)
+        for (int i = 0; i < 4; i++) {
+            String monday = thisMonday.minusWeeks(i).toString();
+            addWorkout(user, monday, 5000, (i + 1) * 600, 5); // load = (i+1)*10min*5 = (i+1)*50
+            addActivity(user, monday, (i + 1) * 1000);         // pasos = (i+1)*1000
+        }
+
+        given().header(HEADER, user)
+                .when().get("/api/v1/analytics/correlations")
+                .then().statusCode(200)
+                .body("weeks", is(12))
+                .body("series.size()", is(12))
+                .body("correlations.size()", is(6))
+                .body("correlations.find { it.aLabel == 'Pasos diarios' }.r", is(1.0f))
+                .body("correlations.find { it.aLabel == 'Pasos diarios' }.n", is(4))
+                .body("correlations.find { it.aLabel == 'Pasos diarios' }.strength", is("muy fuerte"))
+                .body("correlations.find { it.aLabel == 'Pasos diarios' }.direction", is("positiva"));
     }
 
     @Test

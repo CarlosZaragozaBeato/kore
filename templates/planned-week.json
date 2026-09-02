@@ -1,0 +1,61 @@
+[
+  {
+    "date": "2026-09-01",
+    "type": "RUNNING",
+    "description": "Easy aerobic",
+    "status": "ACCEPTED",
+    "steps": [
+      { "kind": "STEADY", "targetDistanceMeters": 8000, "targetPaceMinSecPerKm": 300, "targetPaceMaxSecPerKm": 330 }
+    ]
+  },
+  {
+    "date": "2026-09-02",
+    "type": "RUNNING",
+    "description": "Threshold intervals",
+    "status": "ACCEPTED",
+    "targetDistanceMeters": 11500,
+    "steps": [
+      { "kind": "WARMUP", "targetDistanceMeters": 2000 },
+      { "kind": "INTERVAL", "repeat": 5, "targetDistanceMeters": 1000, "recoverySeconds": 90, "targetPaceMinSecPerKm": 225, "targetPaceMaxSecPerKm": 240 },
+      { "kind": "COOLDOWN", "targetDistanceMeters": 1500 }
+    ]
+  },
+  {
+    "date": "2026-09-03",
+    "type": "STRENGTH",
+    "description": "Lower body + core",
+    "status": "ACCEPTED",
+    "targetDurationSeconds": 3000
+  },
+  {
+    "date": "2026-09-04",
+    "type": "RUNNING",
+    "description": "Easy recovery",
+    "status": "ACCEPTED",
+    "steps": [
+      { "kind": "STEADY", "targetDistanceMeters": 6000, "targetPaceMinSecPerKm": 330, "targetPaceMaxSecPerKm": 360 }
+    ]
+  },
+  {
+    "date": "2026-09-06",
+    "type": "RUNNING",
+    "variantGroup": "w1-sat",
+    "variantLabel": "Normal load",
+    "description": "Long run",
+    "status": "PROPOSED",
+    "steps": [
+      { "kind": "STEADY", "targetDistanceMeters": 24000, "targetPaceMinSecPerKm": 315, "targetPaceMaxSecPerKm": 345 }
+    ]
+  },
+  {
+    "date": "2026-09-06",
+    "type": "RUNNING",
+    "variantGroup": "w1-sat",
+    "variantLabel": "Deload",
+    "description": "Shorter long run if fatigued",
+    "status": "PROPOSED",
+    "steps": [
+      { "kind": "STEADY", "targetDistanceMeters": 16000, "targetPaceMinSecPerKm": 330, "targetPaceMaxSecPerKm": 360 }
+    ]
+  }
+]

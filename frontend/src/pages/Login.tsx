@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { importSession, login } from '../api'
 import { setUsername } from '../session'
+import { getTheme } from '../theme'
 
 interface Props {
   onLogin: (username: string) => void
@@ -51,7 +52,11 @@ export default function Login({ onLogin }: Props) {
   return (
     <main className="center">
       <div className="card">
-        <h1>CCollector</h1>
+        <img
+          className="brand-logo brand-logo-lg"
+          src={getTheme() === 'dark' ? '/brand/kore-logotipo-oscuro.svg' : '/brand/kore-logotipo.svg'}
+          alt="Kore"
+        />
         <p className="muted">Crea o recupera tu sesión con solo un nombre.</p>
         <form onSubmit={submit}>
           <label>

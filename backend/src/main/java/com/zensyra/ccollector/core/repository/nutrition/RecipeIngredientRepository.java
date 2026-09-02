@@ -14,6 +14,15 @@ public class RecipeIngredientRepository implements PanacheRepository<RecipeIngre
         return list("recipeId", Sort.by("position").ascending(), recipeId);
     }
 
+    /** Ids de recetas que usan un ingrediente del catálogo (por su id). */
+    public List<Long> recipeIdsByIngredient(Long ingredientId) {
+        return getEntityManager()
+                .createQuery("select distinct ri.recipeId from RecipeIngredient ri "
+                        + "where ri.ingredientId = ?1", Long.class)
+                .setParameter(1, ingredientId)
+                .getResultList();
+    }
+
     public void deleteByRecipe(Long recipeId) {
         delete("recipeId", recipeId);
     }

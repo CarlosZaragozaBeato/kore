@@ -17,6 +17,6 @@ public record RecipeDTO(
         List<IngredientDTO> ingredients
 ) {
 
-    public record IngredientDTO(String name, Double quantity, String unit) {
+    public record IngredientDTO(String name, Double quantity, String unit, Long ingredientId) {
     }
 }

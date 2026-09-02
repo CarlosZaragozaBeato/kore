@@ -1,0 +1,36 @@
+databaseChangeLog:
+  # Fase 12: control de peso y balance energético.
+  - changeSet:
+      id: 009-create-weight-entries
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: weight_entries
+            columns:
+              - column: {name: id, type: INTEGER, autoIncrement: true, constraints: {primaryKey: true, nullable: false}}
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_weight_entries_user, references: users(id)}
+              - column: {name: date, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: weight_kg, type: DOUBLE, constraints: {nullable: false}}
+        - createIndex:
+            tableName: weight_entries
+            indexName: idx_weight_entries_user
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 009-create-weight-goals
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: weight_goals
+            columns:
+              - column: {name: id, type: INTEGER, autoIncrement: true, constraints: {primaryKey: true, nullable: false}}
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints: {nullable: false, unique: true, foreignKeyName: fk_weight_goals_user, references: users(id)}
+              - column: {name: min_kg, type: DOUBLE}
+              - column: {name: max_kg, type: DOUBLE}
+              - column: {name: maintenance_kcal, type: DOUBLE}

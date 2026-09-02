@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { Recipe, RecipeRequest } from '../api'
+import { useEffect, useState } from 'react'
+import { listIngredients, type CatalogIngredient, type Recipe, type RecipeRequest } from '../api'
 
 interface Row {
   name: string
@@ -29,6 +29,7 @@ interface Props {
 }
 
 export default function RecipeForm({ initial, busy, onSave, onCancel }: Props) {
+  const [catalog, setCatalog] = useState<CatalogIngredient[]>([])
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [servings, setServings] = useState(initial?.servings != null ? String(initial.servings) : '')
@@ -38,6 +39,12 @@ export default function RecipeForm({ initial, busy, onSave, onCancel }: Props) {
   const [fat, setFat] = useState(initial?.fat != null ? String(initial.fat) : '')
   const [steps, setSteps] = useState(initial?.steps ?? '')
   const [rows, setRows] = useState<Row[]>(toRows(initial))
+
+  useEffect(() => {
+    listIngredients()
+      .then(setCatalog)
+      .catch(() => setCatalog([]))
+  }, [])
 
   function addRow() {
     setRows([...rows, { name: '', quantity: '', unit: '' }])
@@ -62,7 +69,15 @@ export default function RecipeForm({ initial, busy, onSave, onCancel }: Props) {
       steps: steps.trim() === '' ? null : steps,
       ingredients: rows
         .filter((r) => r.name.trim() !== '')
-        .map((r) => ({ name: r.name.trim(), quantity: num(r.quantity), unit: r.unit.trim() === '' ? null : r.unit.trim() })),
+        .map((r) => {
+          const match = catalog.find((c) => c.name.toLowerCase() === r.name.trim().toLowerCase())
+          return {
+            name: r.name.trim(),
+            quantity: num(r.quantity),
+            unit: r.unit.trim() === '' ? null : r.unit.trim(),
+            ingredientId: match ? match.id : null,
+          }
+        }),
     })
   }
 
@@ -101,10 +116,18 @@ export default function RecipeForm({ initial, busy, onSave, onCancel }: Props) {
       </label>
 
       <h4>Ingredientes</h4>
+      {catalog.length > 0 && (
+        <p className="muted">Escribe o elige del catálogo ({catalog.length}); se enlaza solo por nombre.</p>
+      )}
+      <datalist id="recipe-catalog">
+        {catalog.map((c) => (
+          <option key={c.id} value={c.name} />
+        ))}
+      </datalist>
       {rows.length === 0 && <p className="muted">Sin ingredientes. Añade el primero.</p>}
       {rows.map((r, i) => (
         <div className="session-row" key={i}>
-          <input placeholder="ingrediente" value={r.name} onChange={(e) => updateRow(i, { name: e.target.value })} />
+          <input list="recipe-catalog" placeholder="ingrediente" value={r.name} onChange={(e) => updateRow(i, { name: e.target.value })} />
           <input type="number" min="0" step="0.01" placeholder="cantidad" value={r.quantity} onChange={(e) => updateRow(i, { quantity: e.target.value })} />
           <input placeholder="unidad" value={r.unit} onChange={(e) => updateRow(i, { unit: e.target.value })} />
           <button type="button" className="link danger" onClick={() => removeRow(i)}>

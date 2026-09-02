@@ -18,18 +18,26 @@ public record WorkoutDTO(
         Double distanceMeters,
         Long durationSeconds,
         Integer avgHeartRate,
+        Integer maxHeartRate,
+        Double energyKcal,
+        Integer stepCount,
         Integer perceivedEffort,
         String notes,
         WorkoutSource source,
         Instant createdAt,
-        Long paceSecondsPerKm
+        Long paceSecondsPerKm,
+        Integer avgCadenceSpm,
+        Double strideLengthMeters
 ) {
 
     public static WorkoutDTO from(Workout w) {
         return new WorkoutDTO(
                 w.id, w.date, w.type, w.distanceMeters, w.durationSeconds,
-                w.avgHeartRate, w.perceivedEffort, w.notes, w.source, w.createdAt,
-                pace(w.distanceMeters, w.durationSeconds));
+                w.avgHeartRate, w.maxHeartRate, w.energyKcal, w.stepCount, w.perceivedEffort,
+                w.notes, w.source, w.createdAt,
+                pace(w.distanceMeters, w.durationSeconds),
+                cadence(w.stepCount, w.durationSeconds),
+                stride(w.distanceMeters, w.stepCount));
     }
 
     private static Long pace(Double meters, Long seconds) {
@@ -37,5 +45,21 @@ public record WorkoutDTO(
             return null;
         }
         return Math.round(seconds / (meters / 1000.0));
+    }
+
+    /** Cadencia media en pasos/min, derivada de pasos y duración. */
+    private static Integer cadence(Integer steps, Long seconds) {
+        if (steps == null || steps <= 0 || seconds == null || seconds <= 0) {
+            return null;
+        }
+        return (int) Math.round(steps / (seconds / 60.0));
+    }
+
+    /** Longitud de zancada en metros/paso, derivada de distancia y pasos. */
+    private static Double stride(Double meters, Integer steps) {
+        if (meters == null || meters <= 0 || steps == null || steps <= 0) {
+            return null;
+        }
+        return Math.round(meters / steps * 100.0) / 100.0;
     }
 }

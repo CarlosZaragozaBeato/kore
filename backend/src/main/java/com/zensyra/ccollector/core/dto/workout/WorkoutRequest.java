@@ -11,6 +11,9 @@ public record WorkoutRequest(
         Double distanceMeters,
         Long durationSeconds,
         Integer avgHeartRate,
+        Integer maxHeartRate,
+        Double energyKcal,
+        Integer stepCount,
         Integer perceivedEffort,
         String notes
 ) {

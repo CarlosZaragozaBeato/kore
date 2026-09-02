@@ -1,5 +1,6 @@
 package com.zensyra.ccollector.core.dto.plan;
 
+import com.zensyra.ccollector.core.domain.plan.StepKind;
 import com.zensyra.ccollector.core.domain.workout.WorkoutType;
 
 import java.time.LocalDate;
@@ -22,7 +23,22 @@ public record PlanRequest(
             WorkoutType type,
             Double targetDistanceMeters,
             Long targetDurationSeconds,
-            String description
+            String description,
+            List<StepRequest> steps
+    ) {
+    }
+
+    public record StepRequest(
+            StepKind kind,
+            Integer repeat,
+            Double targetDistanceMeters,
+            Long targetDurationSeconds,
+            Integer targetPaceMinSecPerKm,
+            Integer targetPaceMaxSecPerKm,
+            Integer targetHrMin,
+            Integer targetHrMax,
+            Long recoverySeconds,
+            String note
     ) {
     }
 }

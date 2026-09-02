@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import {
   getSuuntoSettings,
+  purgeSuunto,
   saveSuuntoSettings,
   syncSuunto,
   type SuuntoSettings,
 } from '../api'
+import KdlPanel from '../components/KdlPanel'
+import { toast } from '../toast'
 
 export default function Settings() {
   const [settings, setSettings] = useState<SuuntoSettings | null>(null)
@@ -14,7 +17,6 @@ export default function Settings() {
   const [refreshToken, setRefreshToken] = useState('')
   const [subscriptionKey, setSubscriptionKey] = useState('')
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
 
   async function load() {
@@ -24,7 +26,7 @@ export default function Settings() {
       setEnabled(s.enabled)
       setClientId(s.clientId ?? '')
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     }
   }
 
@@ -35,7 +37,6 @@ export default function Settings() {
   async function save(e: React.FormEvent) {
     e.preventDefault()
     setBusy(true)
-    setError(null)
     setInfo(null)
     try {
       const s = await saveSuuntoSettings({
@@ -51,8 +52,9 @@ export default function Settings() {
       setRefreshToken('')
       setSubscriptionKey('')
       setInfo('Configuración guardada.')
+      toast.success('Ajustes guardados')
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -60,14 +62,34 @@ export default function Settings() {
 
   async function sync() {
     setBusy(true)
-    setError(null)
     setInfo(null)
     try {
       const r = await syncSuunto()
-      setInfo(`Sincronizado: ${r.imported} importados, ${r.skipped} ya existentes (${r.total} en Suunto).`)
+      setInfo(
+        `Sincronizado: ${r.imported} nuevos, ${r.updated} actualizados, ${r.skipped} omitidos (${r.total} en Suunto).`,
+      )
+      toast.success('Suunto sincronizado')
       await load()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function purge() {
+    if (!confirm('¿Borrar los entrenos de Suunto anteriores a la ventana de retención? Son recuperables con un re-sync.')) {
+      return
+    }
+    setBusy(true)
+    setInfo(null)
+    try {
+      const r = await purgeSuunto()
+      setInfo(`Retención aplicada: ${r.purged} entrenos de Suunto borrados (se conserva desde ${r.cutoff}).`)
+      toast.success('Retención aplicada')
+      await load()
+    } catch (err) {
+      toast.error((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -128,6 +150,9 @@ export default function Settings() {
           <button type="button" className="secondary" onClick={sync} disabled={busy || !settings?.enabled}>
             Sincronizar ahora
           </button>
+          <button type="button" className="link danger" onClick={purge} disabled={busy}>
+            Purgar antiguos
+          </button>
         </div>
       </form>
 
@@ -135,9 +160,15 @@ export default function Settings() {
         Última sincronización:{' '}
         {settings?.lastSyncAt ? new Date(settings.lastSyncAt).toLocaleString() : 'nunca'}
       </p>
+      <p className="muted">
+        Retención mínima: los entrenos de Suunto son recuperables desde su nube, así que solo se
+        conservan el mes actual y el anterior. «Purgar antiguos» libera el resto (un re-sync los
+        recupera).
+      </p>
 
       {info && <p className="ok">{info}</p>}
-      {error && <p className="error">{error}</p>}
+
+      <KdlPanel />
 
       <h2 style={{ marginTop: '2rem' }}>Integración con agentes</h2>
       <p className="muted">

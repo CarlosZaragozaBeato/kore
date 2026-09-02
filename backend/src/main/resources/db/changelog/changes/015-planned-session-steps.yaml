@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-planned-session-steps
+      author: ccollector
+      changes:
+        # Fase B (v4): una sesión planificada deja de ser texto libre y pasa a
+        # ser una lista de pasos con objetivos medibles (distancia/tiempo, ritmo
+        # min/max, FC, repeticiones y descanso). Base para planificar por día y
+        # comparar planificado vs realizado.
+        - createTable:
+            tableName: planned_session_steps
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: planned_session_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_steps_session
+                    references: planned_sessions(id)
+              - column:
+                  name: order_index
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: repeat
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_distance_meters
+                  type: DOUBLE
+              - column:
+                  name: target_duration_seconds
+                  type: BIGINT
+              - column:
+                  name: target_pace_min_sec_per_km
+                  type: INTEGER
+              - column:
+                  name: target_pace_max_sec_per_km
+                  type: INTEGER
+              - column:
+                  name: target_hr_min
+                  type: INTEGER
+              - column:
+                  name: target_hr_max
+                  type: INTEGER
+              - column:
+                  name: recovery_seconds
+                  type: BIGINT
+              - column:
+                  name: note
+                  type: VARCHAR(500)
+        - createIndex:
+            tableName: planned_session_steps
+            indexName: idx_steps_session
+            columns:
+              - column:
+                  name: planned_session_id

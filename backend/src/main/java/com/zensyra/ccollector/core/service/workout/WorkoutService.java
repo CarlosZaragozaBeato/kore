@@ -64,6 +64,9 @@ public class WorkoutService {
         w.distanceMeters = req.distanceMeters();
         w.durationSeconds = req.durationSeconds();
         w.avgHeartRate = req.avgHeartRate();
+        w.maxHeartRate = req.maxHeartRate();
+        w.energyKcal = req.energyKcal();
+        w.stepCount = req.stepCount();
         w.perceivedEffort = req.perceivedEffort();
         w.notes = req.notes();
     }

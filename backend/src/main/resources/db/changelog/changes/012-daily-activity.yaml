@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # Fase 22: control de peso con pasos y quema diaria (actividad 24/7).
+  - changeSet:
+      id: 012-create-daily-activity
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: daily_activity
+            columns:
+              - column: {name: id, type: INTEGER, autoIncrement: true, constraints: {primaryKey: true, nullable: false}}
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_daily_activity_user, references: users(id)}
+              - column: {name: date, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: steps, type: INTEGER}
+              - column: {name: burned_kcal, type: DOUBLE}
+        - createIndex:
+            tableName: daily_activity
+            indexName: idx_daily_activity_user
+            columns:
+              - column: {name: user_id}

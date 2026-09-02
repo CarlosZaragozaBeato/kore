@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { toast } from '../toast'
+import { Empty } from '../components/state'
 import {
   createDietPlan,
   createRecipe,
@@ -15,8 +17,11 @@ import {
 } from '../api'
 import RecipeForm from '../components/RecipeForm'
 import DietPlanForm from '../components/DietPlanForm'
+import IngredientCatalog from '../components/IngredientCatalog'
+import RecipeRecommendations from '../components/RecipeRecommendations'
+import SectionImport from '../components/SectionImport'
 
-type Sub = 'recipes' | 'diets'
+type Sub = 'recipes' | 'recommended' | 'diets' | 'ingredients'
 type RecipeMode = 'list' | 'new' | Recipe
 type DietMode = 'list' | 'new' | DietPlan
 
@@ -50,8 +55,9 @@ export default function Nutrition() {
     try {
       await fn()
       await refresh()
+      toast.success('Hecho')
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -85,12 +91,22 @@ export default function Nutrition() {
         <button className={sub === 'recipes' ? 'tab active' : 'tab'} onClick={() => setSub('recipes')}>
           Recetas
         </button>
+        <button className={sub === 'recommended' ? 'tab active' : 'tab'} onClick={() => setSub('recommended')}>
+          Recomendadas
+        </button>
         <button className={sub === 'diets' ? 'tab active' : 'tab'} onClick={() => setSub('diets')}>
           Dietas
+        </button>
+        <button className={sub === 'ingredients' ? 'tab active' : 'tab'} onClick={() => setSub('ingredients')}>
+          Ingredientes
         </button>
       </div>
 
       {error && <p className="error">{error}</p>}
+
+      {sub === 'ingredients' && <IngredientCatalog />}
+
+      {sub === 'recommended' && <RecipeRecommendations />}
 
       {sub === 'recipes' &&
         (recipeMode !== 'list' ? (
@@ -106,8 +122,9 @@ export default function Nutrition() {
               <h3>Recetas ({recipes.length})</h3>
               <button onClick={() => setRecipeMode('new')}>Nueva receta</button>
             </div>
+            <SectionImport types={[{ key: 'recipe', label: 'Receta' }]} onImported={refresh} />
             {recipes.length === 0 ? (
-              <p className="muted">Sin recetas todavía.</p>
+              <Empty icon="nutrition">Sin recetas todavía.</Empty>
             ) : (
               recipes.map((r) => (
                 <div className="card plan" key={r.id}>
@@ -163,8 +180,9 @@ export default function Nutrition() {
               <h3>Dietas ({diets.length})</h3>
               <button onClick={() => setDietMode('new')}>Nueva dieta</button>
             </div>
+            <SectionImport types={[{ key: 'dietPlan', label: 'Dieta' }]} onImported={refresh} />
             {diets.length === 0 ? (
-              <p className="muted">Sin dietas todavía.</p>
+              <Empty icon="nutrition">Sin dietas todavía.</Empty>
             ) : (
               diets.map((d) => (
                 <div className="card plan" key={d.id}>

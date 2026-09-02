@@ -20,7 +20,7 @@ class AgentResourceTest {
         given()
                 .when().get("/api/v1/agent/manifest")
                 .then().statusCode(200)
-                .body("schemaVersion", is(4))
+                .body("schemaVersion", is(15))
                 .body("apiBase", is("/api/v1"))
                 .body("sessionHeader", is("X-CCollector-Username"))
                 .body("resources.name", hasItem("workouts"))
@@ -48,7 +48,7 @@ class AgentResourceTest {
         given().header(HEADER, user)
                 .when().get("/api/v1/agent/context")
                 .then().statusCode(200)
-                .body("session.schemaVersion", is(4))
+                .body("session.schemaVersion", is(15))
                 .body("session.user.username", is(user))
                 .body("session.workouts.size()", is(1))
                 .body("analytics.totals.workouts", is(1));

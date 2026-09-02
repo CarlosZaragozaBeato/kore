@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-workouts
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: workouts
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_workouts_user
+                    references: users(id)
+              - column:
+                  name: date
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: distance_meters
+                  type: DOUBLE
+              - column:
+                  name: duration_seconds
+                  type: BIGINT
+              - column:
+                  name: avg_heart_rate
+                  type: INT
+              - column:
+                  name: perceived_effort
+                  type: INT
+              - column:
+                  name: notes
+                  type: VARCHAR(2000)
+              - column:
+                  name: source
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: workouts
+            indexName: idx_workouts_user
+            columns:
+              - column:
+                  name: user_id

@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # Fase 23: gimnasio visual. El ejercicio gana imagen/animación de ejecución,
+  # instrucciones de realización y gasto energético (MET). La sesión de fuerza
+  # gana un estado para poder planificarla por día en el calendario.
+  - changeSet:
+      id: 013-exercise-visual
+      author: ccollector
+      changes:
+        - addColumn:
+            tableName: exercises
+            columns:
+              - column: {name: image_url, type: VARCHAR(500)}
+              - column: {name: instructions, type: VARCHAR(2000)}
+              - column: {name: met_value, type: DOUBLE}
+  - changeSet:
+      id: 013-strength-status
+      author: ccollector
+      changes:
+        - addColumn:
+            tableName: strength_sessions
+            columns:
+              - column: {name: status, type: VARCHAR(10), defaultValue: DONE, constraints: {nullable: false}}

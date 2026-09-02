@@ -1,0 +1,1510 @@
+:root {
+  /* --- Marca Kore (constantes, no dependen del tema) --- */
+  --color-core: #0e1b2a;
+  --color-core-raised: #132537;
+  --color-swim: #17c3b2;
+  --color-bike: #3a86ff;
+  --color-run: #ff7a1a;
+  --color-bone: #eaf2f8;
+  --color-success: #2fbf71;
+  --color-warning: #f5b300;
+  --color-danger: #e5484d;
+
+  /* --- Tipografía Kore --- */
+  /* Sans para texto e interfaz; mono para datos (identidad "panel de instrumentos").
+     Todo con stacks del sistema: la app no descarga fuentes de la red. Para una
+     tipografía de marca propia basta un @font-face local y cambiar --font-sans. */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  /* Escala modular (~1.2) para titulares y cuerpo. */
+  --step--1: 0.82rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.44rem;
+  --step-3: 1.73rem;
+
+  /* --- Tema OSCURO (por defecto: la paleta Kore nace en oscuro) --- */
+  --bg: #0b1622;
+  --surface: #0f1d2e;
+  --surface-2: #16283b; /* cabeceras de tabla, rellenos sutiles */
+  --surface-raised: var(--color-core-raised);
+  --text: #e7eff7;
+  --muted: #8ea6bc;
+  --border: #22374d;
+  --border-soft: #1b2d41; /* divisores internos, pistas de progreso */
+  --input-bg: #0c1826;
+  --input-border: #2b4257;
+  --shadow: rgba(0, 0, 0, 0.4);
+
+  --action: var(--color-run); /* CTA / "hoy" = naranja */
+  --action-tint: rgba(255, 122, 26, 0.16); /* fondo suave para estados activos */
+  --on-action: #0b1622; /* texto oscuro sobre naranja */
+  --link: #6fb0ff;
+  --danger-text: #ff7378;
+  --ok-text: #46d18a;
+
+  /* Alias de compatibilidad (nombres antiguos → semánticos por tema). */
+  --color-text-muted: var(--muted);
+  --color-border: var(--border);
+  --color-action: var(--action);
+  --color-action-tint: var(--action-tint);
+
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:root[data-theme='light'] {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-raised: #eef2f7;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e3e6ea;
+  --border-soft: #eef0f3;
+  --input-bg: #ffffff;
+  --input-border: #ccd2db;
+  --shadow: rgba(0, 0, 0, 0.06);
+
+  --on-action: var(--color-core);
+  --action-tint: #fff0e6;
+  --link: #1d5bd6;
+  --danger-text: #c0392b;
+  --ok-text: #1e8449;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* Foco visible por teclado (accesibilidad): anillo de acento consistente.
+   Solo con :focus-visible, así el ratón no lo muestra pero el teclado sí. */
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Enlace "saltar al contenido": oculto hasta recibir foco por teclado. */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 1100;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--action);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* El contenedor de contenido recibe foco por el skip-link, sin anillo visible. */
+#main-content:focus {
+  outline: none;
+}
+
+/* Transición suave al cambiar de tema (respeta reduce-motion). */
+@media (prefers-reduced-motion: no-preference) {
+  .card,
+  .stat,
+  .chart,
+  .workouts,
+  .cal-cell,
+  .week-day,
+  .ex-card,
+  button.secondary {
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+.icon-btn {
+  padding: 0.45rem 0.55rem;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- Tipografía Kore --- */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: var(--step-3);
+}
+h2 {
+  font-size: var(--step-2);
+}
+h3 {
+  font-size: var(--step-1);
+}
+h4 {
+  font-size: var(--step-0);
+  letter-spacing: -0.01em;
+}
+
+/* "Eyebrow": micro-etiqueta en versalitas espaciadas (identidad de datos). */
+.eyebrow,
+.metric-tile .label {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Cifras: tipografía mono y tabular = "panel de instrumentos" atlético. */
+.stat-value,
+.metric-tile .value,
+.corr-r,
+.cal-num,
+.week-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Columnas numéricas alineadas en las tablas. */
+.workouts {
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--color-action);
+  background: var(--color-action);
+  color: var(--on-action);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--color-action);
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: var(--link);
+  padding: 0.2rem 0.4rem;
+}
+
+button.link.danger {
+  color: var(--color-danger);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--action);
+  outline-offset: -1px;
+  border-color: var(--action);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.2rem 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--danger-text);
+}
+
+.ok {
+  color: var(--ok-text);
+}
+
+.center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+
+.center .card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.center form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 1.4rem;
+}
+
+.topbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 0.55rem;
+}
+
+.brand-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  flex: none;
+}
+
+.brand-logo-lg {
+  height: 40px;
+  margin-bottom: 0.6rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+button.tab {
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 0.35rem 0.7rem;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--step--1);
+}
+
+.tab-label {
+  line-height: 1;
+}
+
+button.tab svg {
+  flex: none;
+  opacity: 0.85;
+}
+
+button.tab.active svg {
+  color: var(--action);
+  opacity: 1;
+}
+
+button.tab.active {
+  background: var(--color-action-tint);
+  color: var(--text);
+  font-weight: 600;
+}
+
+label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+label.checkbox input {
+  width: auto;
+}
+
+.form .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.form label {
+  margin-bottom: 0.4rem;
+}
+
+.duration {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.workouts {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.workouts th,
+.workouts td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.9rem;
+}
+
+.workouts th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.row-actions {
+  white-space: nowrap;
+}
+
+/* Etiqueta de disciplina: punto de color (código transversal Kore) + texto. */
+.disc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.disc-badge .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.chart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chart h4 {
+  margin: 0 0 0.8rem;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  height: 120px;
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 0.3rem;
+}
+
+.bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--color-run);
+  border-radius: 3px 3px 0 0;
+}
+
+.bar-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.plan {
+  margin-bottom: 1rem;
+}
+
+.plan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.adherence {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.adherence-bar {
+  flex: 1;
+  height: 10px;
+  background: var(--border-soft);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.adherence-fill {
+  height: 100%;
+  background: var(--color-success);
+}
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.timeline li {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  font-size: 0.9rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.timeline li .mark {
+  color: var(--muted);
+}
+
+.timeline li.done .mark {
+  color: var(--ok-text);
+  font-weight: 700;
+}
+
+.session-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.session-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.agent-handoff {
+  margin-bottom: 1rem;
+}
+
+.agent-handoff .import-panel {
+  margin-top: 0.6rem;
+}
+
+.session-row .done {
+  color: var(--ok-text);
+  font-weight: 700;
+}
+
+.session-row .pending {
+  color: var(--muted);
+}
+
+/* Editor de pasos estructurados dentro de una sesión planificada (Fase B). */
+.session-block {
+  border-left: 2px solid var(--border-soft);
+  padding-left: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.steps {
+  margin: 0.2rem 0 0.4rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+.step-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.step-row input.w-xs {
+  width: 3.2rem;
+}
+
+.step-row input.w-sm {
+  width: 4.6rem;
+}
+
+/* Planificación suelta de calendario (Fase C). */
+.day-planner {
+  margin: 0.6rem 0;
+}
+
+.variant-group {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-session {
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  margin-bottom: 0.4rem;
+  border-left: 3px solid var(--border);
+}
+
+.calendar-session.status-accepted {
+  border-left-color: var(--ok-text);
+}
+
+.calendar-session.status-rejected {
+  opacity: 0.55;
+}
+
+.cs-head {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cs-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+}
+
+.status-badge {
+  font-size: var(--step--1);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.status-badge.status-accepted {
+  color: var(--ok-text);
+  border-color: var(--ok-text);
+}
+
+.status-badge.status-proposed {
+  color: var(--link);
+  border-color: var(--link);
+}
+
+/* Recomendación de carga (Fase E). */
+.load-rec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border-left: 3px solid var(--border);
+  font-size: var(--step--1);
+}
+
+.load-rec-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.load-rec-deload {
+  border-left-color: var(--danger-text);
+}
+
+.load-rec-deload .load-rec-label {
+  color: var(--danger-text);
+}
+
+.load-rec-build {
+  border-left-color: var(--ok-text);
+}
+
+.load-rec-build .load-rec-label {
+  color: var(--ok-text);
+}
+
+.load-rec-maintain {
+  border-left-color: var(--link);
+}
+
+.load-rec-maintain .load-rec-label {
+  color: var(--link);
+}
+
+/* Periodización larga: bloques macro/meso/micro (Fase F). */
+.block-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.4rem 0;
+  font-size: var(--step--1);
+}
+
+.block-breadcrumb .crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.block-breadcrumb .sep {
+  color: var(--muted);
+  margin-right: 0.2rem;
+}
+
+.block-level {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+}
+
+.block-focus {
+  font-size: 0.7rem;
+  color: #0e1b2a;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-weight: 600;
+}
+
+.block-stance {
+  font-size: 0.7rem;
+  color: var(--link);
+  border: 1px solid var(--link);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+}
+
+.block-tree,
+.block-children {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.block-children {
+  margin: 0.3rem 0 0 0.9rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--border-soft);
+}
+
+.block-node {
+  margin-bottom: 0.4rem;
+}
+
+.block-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.block-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.block-note {
+  margin: 0.15rem 0 0;
+  font-size: var(--step--1);
+}
+
+.block-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.3rem 0 0;
+  padding: 0.3rem 0.5rem;
+  background: var(--surface-raised);
+  border-radius: 6px;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* Comparación planificado vs realizado (Fase D). */
+.comparison {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 0.4rem;
+}
+
+.comparison-empty {
+  margin: 0.4rem 0 0;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.comparison-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.15rem 0.4rem 0.15rem 0;
+}
+
+.comparison-table td {
+  padding: 0.2rem 0.4rem 0.2rem 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.band-pill {
+  font-size: var(--step--1);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.band-pill.band-ok {
+  color: var(--ok-text);
+  border-color: var(--ok-text);
+}
+
+.band-pill.band-below {
+  color: var(--link);
+  border-color: var(--link);
+}
+
+.band-pill.band-above {
+  color: var(--danger-text);
+  border-color: var(--danger-text);
+}
+
+.band-pill.band-na {
+  color: var(--muted);
+}
+
+.comparison-note {
+  margin: 0.35rem 0 0;
+  font-size: var(--step--1);
+}
+
+/* Resumen compacto de pasos en la vista de plan. */
+.step-summary {
+  list-style: decimal;
+  margin: 0.2rem 0 0;
+  padding-left: 1.2rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+  flex-basis: 100%;
+}
+
+.step-summary li {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Mobile-first / responsive --- */
+@media (max-width: 640px) {
+  .app {
+    padding: 1rem 0.7rem 3rem;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  /* La barra de pestañas se desliza en horizontal en vez de desbordarse. */
+  .nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  button.tab {
+    white-space: nowrap;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  /* Tablas anchas: scroll horizontal en lugar de romper el layout. */
+  .workouts {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 16px evita el zoom automático al enfocar inputs en iOS. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Objetivos táctiles más cómodos. */
+  button {
+    padding: 0.6rem 0.9rem;
+  }
+
+  .session-row input,
+  .session-row select {
+    flex: 1 1 40%;
+  }
+
+  .cal-cell {
+    min-height: 52px;
+    padding: 0.25rem;
+  }
+}
+
+/* --- Calendario (Fase 17) --- */
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.cal-title {
+  min-width: 10rem;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-head {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  padding: 0.2rem 0;
+}
+
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  min-height: 68px;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.cal-cell:hover {
+  border-color: var(--color-action);
+}
+
+.cal-out {
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+}
+
+.cal-today {
+  border-color: var(--color-action);
+}
+
+.cal-selected {
+  outline: 2px solid var(--color-action);
+  outline-offset: -1px;
+}
+
+.cal-num {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.cal-today .cal-num {
+  color: var(--color-action);
+}
+
+.cal-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.cal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.cal-planned {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-text-muted);
+  flex: none;
+}
+
+/* --- Inicio conectado (Fase 19) --- */
+.clickable {
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.clickable:hover {
+  border-color: var(--color-action);
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin: 0.6rem 0 1.2rem;
+}
+
+.week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0.45rem 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.week-day:hover,
+.week-day.today {
+  border-color: var(--color-action);
+}
+
+.week-dow {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.week-num {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.week-day.today .week-num {
+  color: var(--color-action);
+}
+
+.week-marks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  min-height: 9px;
+}
+
+.week-planned {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-text-muted);
+  flex: none;
+}
+
+/* --- Entrenos: detalle y análisis por tipo (Fase 20) --- */
+.row-link {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.row-link:hover {
+  background: var(--color-action-tint);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.metric-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.metric-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.metric-tile.accent {
+  border-left: 3px solid var(--color-run);
+}
+
+/* El aspecto de .metric-tile .label lo define la regla .eyebrow (tipografía Kore). */
+
+.metric-tile .value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Animaciones sutiles (más visual, Fase 20). */
+@keyframes kore-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-up {
+  animation: kore-fade-up 0.22s ease both;
+}
+
+@keyframes kore-grow {
+  from {
+    transform: scaleY(0.02);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.bar.grow {
+  transform-origin: bottom;
+  animation: kore-grow 0.35s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .bar.grow {
+    animation: none;
+  }
+}
+
+/* --- Import por sección (Fase 21) --- */
+.import-panel {
+  margin: 0.4rem 0 1rem;
+}
+
+.import-panel > summary {
+  cursor: pointer;
+  color: var(--link);
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+  user-select: none;
+}
+
+.import-panel > summary::marker {
+  color: var(--color-text-muted);
+}
+
+.import-panel textarea {
+  width: 100%;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+/* --- Gimnasio visual (Fase 23) --- */
+.ex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.ex-card {
+  background: var(--surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ex-card:hover {
+  box-shadow: 0 4px 14px var(--shadow);
+  transform: translateY(-2px);
+}
+
+.ex-card.open {
+  box-shadow: 0 4px 14px var(--shadow);
+}
+
+.ex-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--color-core-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ex-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ex-thumb-empty {
+  display: inline-flex;
+  color: var(--color-bone);
+  opacity: 0.55;
+}
+
+.cat-badge {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-core);
+  font-weight: 600;
+}
+
+.cat-WARMUP {
+  background: #fff0e6;
+  color: #b5560f;
+}
+.cat-STRENGTH {
+  background: #e6efff;
+  color: #1d5bd6;
+}
+.cat-RECOVERY {
+  background: #e2f7f2;
+  color: #0e8f80;
+}
+
+.ex-body {
+  padding: 0.6rem 0.7rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ex-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  background: var(--color-bone);
+  color: var(--color-core);
+}
+
+.chip.status-planned {
+  background: #fff4d6;
+  color: #8a6400;
+}
+.chip.status-done {
+  background: #e2f7ea;
+  color: #167a45;
+}
+
+.ex-detail {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.ex-detail p {
+  margin: 0 0 0.4rem;
+}
+
+/* --- Correlaciones transversales (Fase 25) --- */
+.corr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.8rem;
+}
+
+.corr-card {
+  border-left: 4px solid var(--color-border);
+}
+
+.corr-card.corr-none {
+  border-left-color: var(--color-border);
+}
+.corr-card.corr-weak {
+  border-left-color: var(--color-warning);
+}
+.corr-card.corr-moderate {
+  border-left-color: var(--color-bike);
+}
+.corr-card.corr-strong {
+  border-left-color: var(--color-run);
+}
+
+.corr-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.corr-r {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.corr-meta {
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0.4rem;
+}
+
+.corr-text {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+/* --- Estados de carga y vacío --- */
+.state-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.2rem 0;
+}
+
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--action);
+  border-radius: 50%;
+  flex: none;
+  animation: kore-spin 0.7s linear infinite;
+}
+
+@keyframes kore-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--muted);
+}
+
+.state-empty svg {
+  opacity: 0.5;
+}
+
+.state-empty p {
+  margin: 0;
+  max-width: 32ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* --- Toasts (feedback de acciones) --- */
+.toaster {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: min(360px, calc(100vw - 2rem));
+}
+
+.toast {
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--muted);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.88rem;
+  box-shadow: 0 6px 20px var(--shadow);
+  animation: kore-toast-in 0.2s ease both;
+}
+
+.toast-success {
+  border-left-color: var(--color-success);
+}
+.toast-error {
+  border-left-color: var(--color-danger);
+}
+.toast-info {
+  border-left-color: var(--color-bike);
+}
+
+@keyframes kore-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .toaster {
+    left: 0.7rem;
+    right: 0.7rem;
+    bottom: 0.7rem;
+    max-width: none;
+  }
+}

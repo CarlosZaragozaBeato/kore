@@ -1,0 +1,177 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-exercises
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: exercises
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_exercises_user
+                    references: users(id)
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: muscle_group
+                  type: VARCHAR(100)
+              - column:
+                  name: equipment
+                  type: VARCHAR(100)
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+        - createIndex:
+            tableName: exercises
+            indexName: idx_exercises_user
+            columns:
+              - column:
+                  name: user_id
+  - changeSet:
+      id: 005-create-routines
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: routines
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_routines_user
+                    references: users(id)
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: created_at
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: routines
+            indexName: idx_routines_user
+            columns:
+              - column:
+                  name: user_id
+  - changeSet:
+      id: 005-create-routine-items
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: routine_items
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: routine_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_items_routine
+                    references: routines(id)
+              - column:
+                  name: position
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exercise_name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sets
+                  type: INT
+              - column:
+                  name: reps
+                  type: INT
+              - column:
+                  name: rest_seconds
+                  type: INT
+              - column:
+                  name: notes
+                  type: VARCHAR(1000)
+        - createIndex:
+            tableName: routine_items
+            indexName: idx_items_routine
+            columns:
+              - column:
+                  name: routine_id
+  - changeSet:
+      id: 005-create-strength-sessions
+      author: ccollector
+      changes:
+        - createTable:
+            tableName: strength_sessions
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_strength_user
+                    references: users(id)
+              - column:
+                  name: date
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: routine_id
+                  type: BIGINT
+              - column:
+                  name: routine_name
+                  type: VARCHAR(200)
+              - column:
+                  name: notes
+                  type: VARCHAR(2000)
+              - column:
+                  name: created_at
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: strength_sessions
+            indexName: idx_strength_user
+            columns:
+              - column:
+                  name: user_id

@@ -1,0 +1,31 @@
+[
+  {
+    "date": "2026-07-20",
+    "type": "RUNNING",
+    "distanceMeters": 10000,
+    "durationSeconds": 3000,
+    "avgHeartRate": 148,
+    "maxHeartRate": 165,
+    "energyKcal": 720,
+    "perceivedEffort": 5,
+    "notes": "Easy long-ish run"
+  },
+  {
+    "date": "2026-07-22",
+    "type": "RUNNING",
+    "distanceMeters": 8000,
+    "durationSeconds": 2160,
+    "avgHeartRate": 162,
+    "maxHeartRate": 178,
+    "energyKcal": 610,
+    "perceivedEffort": 7,
+    "notes": "Threshold session"
+  },
+  {
+    "date": "2026-07-24",
+    "type": "STRENGTH",
+    "durationSeconds": 2700,
+    "perceivedEffort": 6,
+    "notes": "Full body"
+  }
+]

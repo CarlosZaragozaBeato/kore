@@ -1,0 +1,53 @@
+{
+  "kore": "kdl",
+  "kdlVersion": 1,
+  "items": [
+    {
+      "koreType": "block",
+      "schemaVersion": 1,
+      "payload": {
+        "level": "MESO",
+        "focus": "BUILD",
+        "name": "October build",
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-28",
+        "loadStance": "BUILD"
+      }
+    },
+    {
+      "koreType": "plan",
+      "schemaVersion": 1,
+      "payload": {
+        "name": "10k sharpener",
+        "goal": "TEN_K",
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-28",
+        "sessions": [
+          {
+            "date": "2026-10-01",
+            "type": "RUNNING",
+            "description": "Cruise intervals",
+            "steps": [
+              { "kind": "WARMUP", "targetDistanceMeters": 2000 },
+              { "kind": "INTERVAL", "repeat": 4, "targetDistanceMeters": 1600, "recoverySeconds": 60, "targetPaceMinSecPerKm": 240, "targetPaceMaxSecPerKm": 250 },
+              { "kind": "COOLDOWN", "targetDistanceMeters": 1500 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "koreType": "planned",
+      "schemaVersion": 1,
+      "payload": {
+        "date": "2026-10-03",
+        "type": "RUNNING",
+        "description": "Easy shakeout",
+        "status": "ACCEPTED",
+        "steps": [
+          { "kind": "STEADY", "targetDistanceMeters": 6000, "targetPaceMinSecPerKm": 330, "targetPaceMaxSecPerKm": 360 }
+        ]
+      }
+    }
+  ]
+}

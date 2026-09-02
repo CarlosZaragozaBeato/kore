@@ -1,0 +1,41 @@
+{
+  "level": "MACRO",
+  "focus": "BASE",
+  "name": "Ironman season 2026/27",
+  "startDate": "2026-09-01",
+  "endDate": "2027-03-28",
+  "loadStance": "BUILD",
+  "note": "Base -> build -> peak -> taper toward the A race",
+  "children": [
+    {
+      "level": "MESO",
+      "focus": "BASE",
+      "name": "Base block",
+      "startDate": "2026-09-01",
+      "endDate": "2026-09-28",
+      "loadStance": "BUILD",
+      "children": [
+        { "level": "MICRO", "focus": "BASE", "name": "Week 1", "startDate": "2026-09-01", "endDate": "2026-09-07", "loadStance": "BUILD" },
+        { "level": "MICRO", "focus": "BASE", "name": "Week 2", "startDate": "2026-09-08", "endDate": "2026-09-14", "loadStance": "BUILD" },
+        { "level": "MICRO", "focus": "BASE", "name": "Week 3", "startDate": "2026-09-15", "endDate": "2026-09-21", "loadStance": "MAINTAIN" },
+        { "level": "MICRO", "focus": "RECOVERY", "name": "Week 4 (deload)", "startDate": "2026-09-22", "endDate": "2026-09-28", "loadStance": "DELOAD" }
+      ]
+    },
+    {
+      "level": "MESO",
+      "focus": "BUILD",
+      "name": "Build block",
+      "startDate": "2026-09-29",
+      "endDate": "2026-10-26",
+      "loadStance": "BUILD"
+    },
+    {
+      "level": "MESO",
+      "focus": "TAPER",
+      "name": "Taper",
+      "startDate": "2027-03-15",
+      "endDate": "2027-03-28",
+      "loadStance": "DELOAD"
+    }
+  ]
+}

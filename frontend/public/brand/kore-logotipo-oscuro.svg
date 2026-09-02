@@ -1,9 +1,0 @@
-<svg width="720" height="200" viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="720" height="200" rx="0" fill="#0E1B2A"/>
-  <rect x="30" y="30" width="140" height="140" rx="32" fill="#132537"/>
-  <circle cx="100" cy="100" r="52" fill="none" stroke="#17C3B2" stroke-width="14" stroke-dasharray="245 82" stroke-linecap="round" transform="rotate(-90 100 100)"/>
-  <circle cx="100" cy="100" r="30" fill="none" stroke="#3A86FF" stroke-width="14" stroke-dasharray="141 47" stroke-linecap="round" transform="rotate(-90 100 100)"/>
-  <circle cx="100" cy="100" r="9" fill="#FF7A1A"/>
-  <text x="198" y="128" font-family="Avenir Next, Nunito, Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="600" fill="#EAF2F8">Ko</text>
-  <text x="308" y="128" font-family="Avenir Next, Nunito, Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="600" fill="#FF7A1A">re</text>
-</svg>

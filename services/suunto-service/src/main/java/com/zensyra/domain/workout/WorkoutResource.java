@@ -1,53 +1,39 @@
 package com.zensyra.domain.workout;
 
 import com.zensyra.domain.workout.entity.WorkoutEntity;
-import com.zensyra.domain.workout.model.Workout;
-import com.zensyra.suunto.client.SuuntoApiClient;
-import com.zensyra.suunto.client.SuuntoAuthTokenProvider;
-
+import com.zensyra.suunto.scheduler.SuuntoSyncScheduler;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
 @Path("/workout")
+@Produces(MediaType.APPLICATION_JSON)
 public class WorkoutResource {
 
     @Inject
-    SuuntoAuthTokenProvider tokenProvider;
+    SuuntoSyncScheduler syncScheduler;
 
-    @Inject
-    @RestClient
-    SuuntoApiClient apiClient;
-
-    @ConfigProperty(name = "suunto.subscription-key")
-    String subscriptionKey;
-
+    /**
+     * Consulta y devuelve todos los entrenamientos guardados localmente en PostgreSQL.
+     */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
-    public List<Workout> getWorkouts() {
-        String token = tokenProvider.getValidAccessToken();
-        String authHeader = "Bearer " + token;
+    public List<WorkoutEntity> getAllWorkouts() {
+        return WorkoutEntity.list("ORDER BY startTime DESC");
+    }
 
-        var response = apiClient.listWorkouts(authHeader, subscriptionKey);
-        if (response == null || response.workoutsOrEmpty().isEmpty()) {
-            return List.of();
-        }
-
-        var dtos = response.workoutsOrEmpty();
-
-        // Guardado/Actualización de payloads en BD como efecto secundario
-        dtos.forEach(WorkoutEntity::updateOrInsert);
-
-        return dtos.stream()
-                .map(Workout::fromSuuntoDto)
-                .toList();
+    /**
+     * Dispara manualmente la sincronización contra Suunto Cloud bajo demanda.
+     */
+    @POST
+    @Path("/sync")
+    public Response forceSync() {
+        syncScheduler.syncWorkouts();
+        return Response.ok("{\"message\": \"Sincronización completada correctamente\"}").build();
     }
 }

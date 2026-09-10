@@ -54,24 +54,39 @@ public class WorkoutEntity extends PanacheEntityBase {
     @Column(name = "step_count")
     public Integer stepCount;
 
-public static void updateOrInsert(SuuntoWorkoutDto dto) {
-    WorkoutEntity entity = findById(dto.workoutKey());
-    if (entity == null) {
-        entity = new WorkoutEntity();
-        entity.id = dto.workoutKey();
+    public static void updateOrInsert(SuuntoWorkoutDto dto, String rawPayload) {
+        WorkoutEntity entity = findById(dto.workoutKey());
+
+        if (entity == null) {
+            entity = new WorkoutEntity();
+            entity.id = dto.workoutKey();
+
+            entity.activityId = dto.activityId();
+            entity.ascentMeters = dto.ascentMeters();
+            entity.avgHeartRate = dto.avgHeartRate();
+            entity.descentMeters = dto.descentMeters();
+            entity.distanceMeters = dto.distanceMeters();
+            entity.durationSeconds = dto.durationSeconds();
+            entity.energyConsumption = dto.energyConsumption();
+            entity.maxHeartRate = dto.maxHeartRate();
+            entity.rawPayload = rawPayload;
+            entity.startTime = dto.startTimeAsOffsetDateTime();
+            entity.stepCount = dto.stepCount();
+
+            entity.persist();
+            return;
+        }
+
+        entity.activityId = dto.activityId();
+        entity.ascentMeters = dto.ascentMeters();
+        entity.avgHeartRate = dto.avgHeartRate();
+        entity.descentMeters = dto.descentMeters();
+        entity.distanceMeters = dto.distanceMeters();
+        entity.durationSeconds = dto.durationSeconds();
+        entity.energyConsumption = dto.energyConsumption();
+        entity.maxHeartRate = dto.maxHeartRate();
+        entity.rawPayload = rawPayload;
+        entity.startTime = dto.startTimeAsOffsetDateTime();
+        entity.stepCount = dto.stepCount();
     }
-
-    entity.activityId = dto.activityId();
-    entity.ascentMeters = dto.ascentMeters();
-    entity.avgHeartRate = dto.avgHeartRate();
-    entity.descentMeters = dto.descentMeters();
-    entity.distanceMeters = dto.distanceMeters();
-    entity.durationSeconds = dto.durationSeconds();
-    entity.energyConsumption = dto.energyConsumption();
-    entity.maxHeartRate = dto.maxHeartRate();
-    entity.startTime = dto.startTimeAsOffsetDateTime();
-    entity.stepCount = dto.stepCount();
-
-    entity.persist();
-}
 }

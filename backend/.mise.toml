@@ -1,3 +1,0 @@
-# Quarkus 3.37 no soporta Java 26; fijamos el JDK 21 LTS para el backend.
-[tools]
-java = "21.0.2"

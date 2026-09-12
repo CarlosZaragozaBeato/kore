@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-workout
+      author: kore
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: workout
+      changes:
+        - createTable:
+            tableName: workout
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: activity_id
+                  type: INTEGER
+              - column:
+                  name: ascent_meters
+                  type: FLOAT(53)
+              - column:
+                  name: avg_heart_rate
+                  type: FLOAT(53)
+              - column:
+                  name: descent_meters
+                  type: FLOAT(53)
+              - column:
+                  name: distance_meters
+                  type: FLOAT(53)
+              - column:
+                  name: duration_seconds
+                  type: FLOAT(53)
+              - column:
+                  name: energy_consumption
+                  type: FLOAT(53)
+              - column:
+                  name: max_heart_rate
+                  type: FLOAT(53)
+              - column:
+                  name: raw_payload
+                  type: JSONB
+              - column:
+                  name: start_time
+                  type: TIMESTAMP(6) WITH TIME ZONE
+              - column:
+                  name: step_count
+                  type: INTEGER

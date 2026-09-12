@@ -1,12 +1,11 @@
 databaseChangeLog:
-  # Fase 0: baseline vacío. Solo crea las tablas de tracking de Liquibase
-  # y deja el esquema etiquetado. Las tablas reales (users, workouts, ...)
-  # llegan en la Fase 1 como changelogs en changes/.
   - changeSet:
       id: 000-baseline
-      author: ccollector
+      author: kore
       changes:
         - tagDatabase:
             tag: baseline
   - include:
-      file: db/changelog/changes/workout.yaml
+      file: db/changelog/changes/create-workout.yaml
+  - include:
+      file: db/changelog/changes/create-sync-state.yaml

@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-sync-state
+      author: zensyra
+      changes:
+        - createTable:
+            tableName: sync_state
+            columns:
+              - column:
+                  name: source
+                  type: varchar(100)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: last_synced_at
+                  type: bigint
+                  constraints:
+                    nullable: false

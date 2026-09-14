@@ -20,6 +20,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.zensyra.suunto.dto.SuuntoWorkoutDto;
+import com.zensyra.suunto.mapper.SuuntoWorkoutMapper;
 
 import java.time.OffsetDateTime;
 
@@ -135,6 +136,9 @@ public class WorkoutEntity extends PanacheEntityBase {
     public FitnessMetrics fitnessMetrics;
 
     @Embedded
+    public IntensityZones intensityZones;
+
+    @Embedded
     public Gear gear;
 
     @Embedded
@@ -164,39 +168,23 @@ public class WorkoutEntity extends PanacheEntityBase {
     })
     public Position centerPosition;
 
-    public static void updateOrInsert(SuuntoWorkoutDto dto, String rawPayload) {
+    public static void updateOrInsert(
+            SuuntoWorkoutDto dto,
+            String rawPayload) {
         WorkoutEntity entity = findById(dto.workoutKey());
 
         if (entity == null) {
             entity = new WorkoutEntity();
-            entity.id = dto.workoutKey();
-
-            entity.activityId = dto.activityId();
-            entity.ascentMeters = dto.ascentMeters();
-            entity.avgHeartRate = dto.avgHeartRate();
-            entity.descentMeters = dto.descentMeters();
-            entity.distanceMeters = dto.distanceMeters();
-            entity.durationSeconds = dto.durationSeconds();
-            entity.energyConsumption = dto.energyConsumption();
-            entity.maxHeartRate = dto.maxHeartRate();
-            entity.rawPayload = rawPayload;
-            entity.startTime = dto.startTimeAsOffsetDateTime();
-            entity.stepCount = dto.stepCount();
-
-            entity.persist();
-            return;
         }
 
-        entity.activityId = dto.activityId();
-        entity.ascentMeters = dto.ascentMeters();
-        entity.avgHeartRate = dto.avgHeartRate();
-        entity.descentMeters = dto.descentMeters();
-        entity.distanceMeters = dto.distanceMeters();
-        entity.durationSeconds = dto.durationSeconds();
-        entity.energyConsumption = dto.energyConsumption();
-        entity.maxHeartRate = dto.maxHeartRate();
+        SuuntoWorkoutMapper.mapBasicFields(entity, dto);
+        SuuntoWorkoutMapper.mapPositions(entity, dto);
+        SuuntoWorkoutMapper.mapTrainingLoad(entity, dto);
+        SuuntoWorkoutMapper.mapIntensityZones(entity, dto);
+        
         entity.rawPayload = rawPayload;
-        entity.startTime = dto.startTimeAsOffsetDateTime();
-        entity.stepCount = dto.stepCount();
+
+        entity.persist();
     }
+
 }

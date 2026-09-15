@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: map-workout-payload
+      author: kore
+      changes:
+
+        - sql:
+            sql: |
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS workout_id INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS stop_time TIMESTAMP WITH TIME ZONE;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS last_modified BIGINT;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_pace DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_speed DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS max_speed DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS max_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS max_altitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS min_altitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS recovery_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS cumulative_recovery_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS time_offset_minutes INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS estimated_floors_climbed INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS edited BOOLEAN;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS manually_added BOOLEAN;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS comment_count INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS picture_count INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS view_count INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_max DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS user_max_heart_rate DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_hr DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_hr_intensity_factor DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_hr_normalized_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_hr_avg_grade_adjusted_pace DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_power_intensity_factor DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_power_normalized_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_power_avg_grade_adjusted_pace DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_pace DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_pace_intensity_factor DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_pace_normalized_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_pace_avg_grade_adjusted_pace DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_met DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_met_intensity_factor DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_met_normalized_power DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS tss_met_avg_grade_adjusted_pace DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone1_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone1_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone2_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone2_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone3_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone3_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone4_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone4_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone5_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_zone5_lower_limit DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone1_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone1_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone2_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone2_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone3_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone3_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone4_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone4_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone5_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS power_zone5_lower_limit DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone1_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone1_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone2_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone2_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone3_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone3_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone4_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone4_lower_limit DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone5_total_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS speed_zone5_lower_limit DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS start_latitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS start_longitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS stop_latitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS stop_longitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS center_latitude DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS center_longitude DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS vo2_max DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS estimated_vo2_max DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS fitness_age INTEGER;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_name VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_display_name VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_product_type VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_manufacturer VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_serial_number VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_hardware_version VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS gear_software_version VARCHAR(255);
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS weather_humidity DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS weather_temperature DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS weather_wind_speed DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS weather_icon VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS weather_wind_direction DOUBLE PRECISION;
+
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS pte DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS feeling INTEGER;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS peak_epoc DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_temperature DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS min_temperature DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS max_temperature DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_ground_contact_time DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS avg_vertical_oscillation DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_recovery_drop DOUBLE PRECISION;
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_recovery_level VARCHAR(255);
+              ALTER TABLE workout ADD COLUMN IF NOT EXISTS hr_recovery_comparison_level VARCHAR(255);

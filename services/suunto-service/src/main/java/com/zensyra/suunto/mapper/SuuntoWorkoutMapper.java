@@ -7,8 +7,12 @@ import com.zensyra.domain.workout.model.TrainingLoad;
 import com.zensyra.domain.workout.model.TrainingLoadMethod;
 import com.zensyra.suunto.dto.SuuntoWorkoutDto;
 import com.zensyra.domain.workout.model.IntensityZone;
-import com.zensyra.domain.workout.model.IntensityZones;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.zensyra.domain.workout.model.FitnessMetrics;
+import com.zensyra.domain.workout.model.Gear;
+import com.zensyra.domain.workout.model.HeartRateRecovery;
+import com.zensyra.domain.workout.model.Weather;
+import com.zensyra.domain.workout.model.WorkoutSummaryMetrics;
 
 public final class SuuntoWorkoutMapper {
 
@@ -248,6 +252,146 @@ public final class SuuntoWorkoutMapper {
         }
 
         return value.asDouble();
+    }
+
+    public static void mapExtensions(
+            WorkoutEntity entity,
+            SuuntoWorkoutDto dto) {
+        if (dto.extensions() == null) {
+            return;
+        }
+
+        FitnessMetrics fitnessMetrics = null;
+        Gear gear = null;
+        Weather weather = null;
+        WorkoutSummaryMetrics summaryMetrics = null;
+
+        for (JsonNode extension : dto.extensions()) {
+            String type = extension.path("type").asText();
+
+            switch (type) {
+                case "FitnessExtension" ->
+                    fitnessMetrics = mapFitness(extension);
+
+                case "IntensityExtension" ->
+                    mapIntensityZones(entity, dto);
+
+                case "SummaryExtension" -> {
+                    summaryMetrics = mapSummary(extension);
+                    gear = mapGear(extension);
+                }
+
+                case "WeatherExtension" ->
+                    weather = mapWeather(extension);
+
+                default -> {
+                    // Extensión no normalizada: permanece en raw_payload.
+                }
+            }
+        }
+
+        entity.fitnessMetrics = fitnessMetrics;
+        entity.gear = gear;
+        entity.weather = weather;
+        entity.summaryMetrics = summaryMetrics;
+    }
+
+    private static FitnessMetrics mapFitness(JsonNode extension) {
+        JsonNode fitness = extension;
+
+        FitnessMetrics result = new FitnessMetrics();
+
+        result.vo2Max = nullableDouble(fitness, "vo2Max");
+        result.estimatedVo2Max = nullableDouble(fitness, "estimatedVo2Max");
+        result.fitnessAge = nullableInteger(fitness, "fitnessAge");
+
+        return result;
+    }
+
+    private static Gear mapGear(JsonNode extension) {
+        JsonNode gearNode = extension.get("gear");
+
+        if (gearNode == null || gearNode.isNull()) {
+            return null;
+        }
+
+        Gear result = new Gear();
+
+        result.name = nullableText(gearNode, "name");
+        result.displayName = nullableText(gearNode, "displayName");
+        result.productType = nullableText(gearNode, "productType");
+        result.manufacturer = nullableText(gearNode, "manufacturer");
+        result.serialNumber = nullableText(gearNode, "serialNumber");
+        result.hardwareVersion = nullableText(gearNode, "hardwareVersion");
+        result.softwareVersion = nullableText(gearNode, "softwareVersion");
+
+        return result;
+    }
+
+    private static Weather mapWeather(JsonNode extension) {
+        Weather result = new Weather();
+
+        result.humidity = nullableDouble(extension, "humidity");
+        result.windSpeed = nullableDouble(extension, "windSpeed");
+        result.temperature = nullableDouble(extension, "temperature");
+        result.weatherIcon = nullableText(extension, "weatherIcon");
+        result.windDirection = nullableDouble(extension, "windDirection");
+
+        return result;
+    }
+
+    private static WorkoutSummaryMetrics mapSummary(JsonNode extension) {
+        WorkoutSummaryMetrics result = new WorkoutSummaryMetrics();
+
+        result.pte = nullableDouble(extension, "pte");
+        result.feeling = nullableInteger(extension, "feeling");
+        result.peakEpoc = nullableDouble(extension, "peakEpoc");
+
+        result.avgTemperature = nullableDouble(extension, "avgTemperature");
+        result.minTemperature = nullableDouble(extension, "minTemperature");
+        result.maxTemperature = nullableDouble(extension, "maxTemperature");
+
+        result.avgGroundContactTime = nullableDouble(extension, "avgGroundContactTime");
+
+        result.avgVerticalOscillation = nullableDouble(extension, "avgVerticalOscillation");
+
+        JsonNode recovery = extension.get("heartRateRecovery");
+
+        if (recovery != null && !recovery.isNull()) {
+            HeartRateRecovery hrRecovery = new HeartRateRecovery();
+
+            hrRecovery.drop = nullableDouble(recovery, "drop");
+            hrRecovery.level = nullableText(recovery, "level");
+            hrRecovery.comparisonLevel = nullableText(recovery, "comparisonLevel");
+
+            result.heartRateRecovery = hrRecovery;
+        }
+
+        return result;
+    }
+
+    private static Integer nullableInteger(
+            JsonNode node,
+            String field) {
+        JsonNode value = node.get(field);
+
+        if (value == null || value.isNull()) {
+            return null;
+        }
+
+        return value.asInt();
+    }
+
+    private static String nullableText(
+            JsonNode node,
+            String field) {
+        JsonNode value = node.get(field);
+
+        if (value == null || value.isNull()) {
+            return null;
+        }
+
+        return value.asText();
     }
 
 }

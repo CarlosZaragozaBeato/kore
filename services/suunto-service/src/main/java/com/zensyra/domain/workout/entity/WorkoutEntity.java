@@ -181,8 +181,10 @@ public class WorkoutEntity extends PanacheEntityBase {
         SuuntoWorkoutMapper.mapPositions(entity, dto);
         SuuntoWorkoutMapper.mapTrainingLoad(entity, dto);
         SuuntoWorkoutMapper.mapIntensityZones(entity, dto);
+        SuuntoWorkoutMapper.mapExtensions(entity, dto);
         
         entity.rawPayload = rawPayload;
+
 
         entity.persist();
     }

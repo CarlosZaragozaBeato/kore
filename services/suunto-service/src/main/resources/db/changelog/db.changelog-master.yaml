@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/changes/create-workout.yaml
   - include:
       file: db/changelog/changes/create-sync-state.yaml
+  - include:
+      file: db/changelog/changes/map-workout-payload.yaml

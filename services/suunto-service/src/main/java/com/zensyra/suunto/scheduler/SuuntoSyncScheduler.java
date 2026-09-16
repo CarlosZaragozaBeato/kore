@@ -38,7 +38,7 @@ public class SuuntoSyncScheduler {
     @ConfigProperty(name = "suunto.subscription-key")
     String subscriptionKey;
 
-    @Scheduled(every = "1h", delayed = "10s")
+    @Scheduled(every = "1h", delayed = "10m")
     @Transactional
     public void syncWorkouts() {
         SyncStateEntity syncState = SyncStateEntity.getOrCreate(SOURCE);
@@ -58,16 +58,13 @@ public class SuuntoSyncScheduler {
                     until,
                     PAGE_SIZE,
                     offset,
-                    true
-            );
+                    true);
 
             List<RawWorkout> workouts = parseWorkouts(rawResponse);
-
             for (RawWorkout workout : workouts) {
                 WorkoutEntity.updateOrInsert(
                         workout.dto(),
-                        workout.rawPayload()
-                );
+                        workout.rawPayload());
             }
 
             if (workouts.size() < PAGE_SIZE) {
@@ -102,23 +99,20 @@ public class SuuntoSyncScheduler {
                         if (parser.currentToken() != JsonToken.START_OBJECT) {
                             throw new IllegalStateException(
                                     "Suunto workout is not an object: "
-                                            + parser.currentToken()
-                            );
+                                            + parser.currentToken());
                         }
 
                         long startOffset = parser.getTokenLocation().getCharOffset();
 
                         SuuntoWorkoutDto dto = objectMapper.readValue(
                                 parser,
-                                SuuntoWorkoutDto.class
-                        );
+                                SuuntoWorkoutDto.class);
 
                         long endOffset = parser.getCurrentLocation().getCharOffset();
 
                         String rawWorkout = rawResponse.substring(
                                 (int) startOffset,
-                                (int) endOffset
-                        );
+                                (int) endOffset);
 
                         workouts.add(new RawWorkout(dto, rawWorkout));
                     }
@@ -131,14 +125,12 @@ public class SuuntoSyncScheduler {
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Unable to parse Suunto workouts response",
-                    e
-            );
+                    e);
         }
     }
 
     private record RawWorkout(
             SuuntoWorkoutDto dto,
-            String rawPayload
-    ) {
+            String rawPayload) {
     }
 }

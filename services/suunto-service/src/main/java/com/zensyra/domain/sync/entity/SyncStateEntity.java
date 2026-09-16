@@ -22,17 +22,19 @@ public class SyncStateEntity extends PanacheEntityBase {
     }
 
     public static SyncStateEntity getOrCreate(String source) {
-        SyncStateEntity state = findBySource(source);
+    SyncStateEntity state = findBySource(source);
 
-        if (state != null) {
-            return state;
-        }
+    System.out.println("DEBUG sync_state source=" + source + " found=" + (state != null));
 
-        state = new SyncStateEntity();
-        state.source = source;
-        state.lastSyncedAt = 0L;
-        state.persist();
-
+    if (state != null) {
         return state;
     }
+
+    state = new SyncStateEntity();
+    state.source = source;
+    state.lastSyncedAt = 0L;
+    state.persist();
+
+    return state;
+}
 }

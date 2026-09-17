@@ -16,10 +16,7 @@ import io.quarkus.rest.client.reactive.ClientExceptionMapper;
 @RegisterRestClient(configKey = "suunto-api")
 public interface SuuntoApiClient {
 
-    @Retry(
-        maxRetries = 3,
-        delay = 1000
-    )
+    @Retry(maxRetries = 3, delay = 1000, retryOn = SuuntoRetryableException.class)
     @GET
     @Path("/v3/workouts")
     @Produces(MediaType.APPLICATION_JSON)

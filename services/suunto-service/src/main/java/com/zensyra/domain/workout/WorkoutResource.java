@@ -51,14 +51,70 @@ public class WorkoutResource {
                 .mapToDouble(workout -> workout.durationSeconds)
                 .sum();
 
-        int tssAvailableSessions = 0;
+        double tssHrTotal = workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.hr != null
+                        && workout.trainingLoad.hr.trainingStressScore != null)
+                .mapToDouble(workout -> workout.trainingLoad.hr.trainingStressScore)
+                .sum();
+
+        int tssHrAvailableSessions = (int) workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.hr != null
+                        && workout.trainingLoad.hr.trainingStressScore != null)
+                .count();
+
+        double tssPowerTotal = workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.power != null
+                        && workout.trainingLoad.power.trainingStressScore != null)
+                .mapToDouble(workout -> workout.trainingLoad.power.trainingStressScore)
+                .sum();
+
+        int tssPowerAvailableSessions = (int) workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.power != null
+                        && workout.trainingLoad.power.trainingStressScore != null)
+                .count();
+
+        double tssPaceTotal = workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.pace != null
+                        && workout.trainingLoad.pace.trainingStressScore != null)
+                .mapToDouble(workout -> workout.trainingLoad.pace.trainingStressScore)
+                .sum();
+
+        int tssPaceAvailableSessions = (int) workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.pace != null
+                        && workout.trainingLoad.pace.trainingStressScore != null)
+                .count();
+
+        double tssMetTotal = workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.met != null
+                        && workout.trainingLoad.met.trainingStressScore != null)
+                .mapToDouble(workout -> workout.trainingLoad.met.trainingStressScore)
+                .sum();
+
+        int tssMetAvailableSessions = (int) workouts.stream()
+                .filter(workout -> workout.trainingLoad != null
+                        && workout.trainingLoad.met != null
+                        && workout.trainingLoad.met.trainingStressScore != null)
+                .count();
 
         return new WorkoutSummary(
                 workouts.size(),
                 distanceMeters,
                 durationSeconds,
-                null,
-                tssAvailableSessions
+                tssHrTotal,
+                tssHrAvailableSessions,
+                tssPowerTotal,
+                tssPowerAvailableSessions,
+                tssPaceTotal,
+                tssPaceAvailableSessions,
+                tssMetTotal,
+                tssMetAvailableSessions
         );
     }
 
@@ -125,8 +181,14 @@ public class WorkoutResource {
             int sessions,
             double distanceMeters,
             double durationSeconds,
-            Double tss,
-            int tssAvailableSessions
+            double tssHrTotal,
+            int tssHrAvailableSessions,
+            double tssPowerTotal,
+            int tssPowerAvailableSessions,
+            double tssPaceTotal,
+            int tssPaceAvailableSessions,
+            double tssMetTotal,
+            int tssMetAvailableSessions
     ) {
     }
 }

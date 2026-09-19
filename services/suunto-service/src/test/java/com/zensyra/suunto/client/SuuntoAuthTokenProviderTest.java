@@ -143,18 +143,19 @@ class SuuntoAuthTokenProviderTest {
         }
 
         private void resetProviderState() throws Exception {
+                SuuntoAuthTokenProvider provider = io.quarkus.arc.ClientProxy.unwrap(authTokenProvider);
+
                 Field accessToken = SuuntoAuthTokenProvider.class
                                 .getDeclaredField("currentAccessToken");
 
                 accessToken.setAccessible(true);
-                accessToken.set(authTokenProvider, null);
+                accessToken.set(provider, null);
 
                 Field tokenExpiration = SuuntoAuthTokenProvider.class
                                 .getDeclaredField("tokenExpiration");
 
                 tokenExpiration.setAccessible(true);
-                tokenExpiration.set(
-                                authTokenProvider,
-                                Instant.MIN);
+                tokenExpiration.set(provider, Instant.MIN);
         }
+
 }

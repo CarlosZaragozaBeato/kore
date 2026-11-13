@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "catalog_version": "2026-11-13-v1",
+  "sessions": [
+    {
+      "id": "rest_day", "name": "Descanso", "role": "rest",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico", "descarga", "afinación", "competición"],
+      "level": null, "progression_group": null, "dose": null,
+      "warmup": null, "main_set": "Descanso o movilidad opcional", "recovery": null, "cooldown": null,
+      "intensity": "Sin carrera", "placement": "Usar para respetar los días no disponibles o separar cargas.",
+      "progression_id": null, "regression_id": null
+    },
+    {
+      "id": "recovery_run", "name": "Rodaje de recuperación", "role": "recovery",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico", "descarga", "afinación", "competición"],
+      "level": null, "progression_group": null, "dose": null,
+      "warmup": null, "main_set": "Carrera muy cómoda", "recovery": null, "cooldown": null,
+      "intensity": "Muy fácil; conversación completa", "placement": "Preferente tras tirada larga o sesión estructurada.",
+      "progression_id": null, "regression_id": null
+    },
+    {
+      "id": "easy_run", "name": "Rodaje fácil", "role": "easy",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico", "descarga", "afinación", "competición"],
+      "level": null, "progression_group": null, "dose": null,
+      "warmup": null, "main_set": "Carrera continua cómoda", "recovery": null, "cooldown": null,
+      "intensity": "Conversacional", "placement": "Completa el volumen sin añadir un estímulo estructurado.",
+      "progression_id": null, "regression_id": null
+    },
+    {
+      "id": "long_aerobic", "name": "Tirada larga", "role": "long",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico", "descarga", "afinación"],
+      "level": null, "progression_group": null, "dose": null,
+      "warmup": null, "main_set": "Carrera aeróbica continua", "recovery": null, "cooldown": null,
+      "intensity": "Cómoda y sostenible", "placement": "Separar de la calidad según los días disponibles.",
+      "progression_id": null, "regression_id": null
+    },
+    {
+      "id": "speed_1min", "name": "Series cortas", "role": "speed",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 0, "progression_group": "speed", "dose": {"minimum": "4×1 min", "target": "6×1 min", "maximum": "8×1 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Repeticiones de 1 minuto", "recovery": "1 min al trote", "cooldown": "1–2 km fáciles",
+      "intensity": "Alegre y controlada", "placement": "Sesión estructurada; evitar proximidad inmediata a la tirada larga.",
+      "progression_id": "speed_3min", "regression_id": null
+    },
+    {
+      "id": "speed_3min", "name": "Series medias", "role": "speed",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 1, "progression_group": "speed", "dose": {"minimum": "4×3 min", "target": "5×3 min", "maximum": "6×3 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Repeticiones de 3 minutos", "recovery": "2 min al trote", "cooldown": "1–2 km fáciles",
+      "intensity": "Fuerte y controlada", "placement": "Sesión estructurada; evitar proximidad inmediata a la tirada larga.",
+      "progression_id": "speed_1k", "regression_id": "speed_1min"
+    },
+    {
+      "id": "speed_1k", "name": "Series de 1 km", "role": "speed",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 2, "progression_group": "speed", "dose": {"minimum": "4×1 km", "target": "5×1 km", "maximum": "6×1 km"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Repeticiones de 1 km", "recovery": "2–3 min al trote", "cooldown": "1–2 km fáciles",
+      "intensity": "Fuerte y controlada; ritmo por calibrar", "placement": "Sesión estructurada; evitar proximidad inmediata a la tirada larga.",
+      "progression_id": "speed_1600m", "regression_id": "speed_3min"
+    },
+    {
+      "id": "speed_1600m", "name": "Series largas", "role": "speed",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 3, "progression_group": "speed", "dose": {"minimum": "3×1,6 km", "target": "4×1,6 km", "maximum": "5×1,6 km"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Repeticiones de 1,6 km", "recovery": "3 min al trote", "cooldown": "1–2 km fáciles",
+      "intensity": "Fuerte y controlada; ritmo por calibrar", "placement": "Sesión estructurada; requiere experiencia previa con intervalos largos.",
+      "progression_id": null, "regression_id": "speed_1k"
+    },
+    {
+      "id": "sustained_6min", "name": "Sostenido breve", "role": "sustained",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 0, "progression_group": "sustained", "dose": {"minimum": "2×6 min", "target": "3×6 min", "maximum": "3×8 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Bloques sostenidos de 6 minutos", "recovery": "3 min fáciles", "cooldown": "1–2 km fáciles",
+      "intensity": "Controlada", "placement": "Separar de otra sesión estructurada y de la tirada larga.",
+      "progression_id": "sustained_10min", "regression_id": null
+    },
+    {
+      "id": "sustained_10min", "name": "Sostenido medio", "role": "sustained",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 1, "progression_group": "sustained", "dose": {"minimum": "2×10 min", "target": "3×10 min", "maximum": "3×12 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Bloques sostenidos de 10 minutos", "recovery": "3 min fáciles", "cooldown": "1–2 km fáciles",
+      "intensity": "Controlada y sostenida", "placement": "Separar de otra sesión estructurada y de la tirada larga.",
+      "progression_id": "sustained_15min", "regression_id": "sustained_6min"
+    },
+    {
+      "id": "sustained_15min", "name": "Sostenido largo", "role": "sustained",
+      "compatible_focus_distances": ["10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["base", "desarrollo", "específico"],
+      "level": 2, "progression_group": "sustained", "dose": {"minimum": "2×15 min", "target": "3×15 min", "maximum": "2×20 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Bloques sostenidos de 15 minutos", "recovery": "4 min fáciles", "cooldown": "1–2 km fáciles",
+      "intensity": "Controlada y sostenida", "placement": "Requiere tolerancia previa a bloques sostenidos medios.",
+      "progression_id": "sustained_continuous", "regression_id": "sustained_10min"
+    },
+    {
+      "id": "sustained_continuous", "name": "Sostenido continuo", "role": "sustained",
+      "compatible_focus_distances": ["10k", "21k", "42k"],
+      "objectives": ["race", "development"], "phases": ["desarrollo", "específico"],
+      "level": 3, "progression_group": "sustained", "dose": {"minimum": "20 min", "target": "30 min", "maximum": "40 min"},
+      "warmup": "2–3 km fáciles y movilidad", "main_set": "Carrera sostenida continua", "recovery": "Sin pausa", "cooldown": "1–2 km fáciles",
+      "intensity": "Controlada y sostenida; no competir", "placement": "Requiere tolerancia previa a bloques sostenidos largos.",
+      "progression_id": null, "regression_id": "sustained_15min"
+    },
+    {
+      "id": "race_evaluation", "name": "Competición o evaluación", "role": "race",
+      "compatible_focus_distances": ["5k", "10k", "21k", "42k"],
+      "objectives": ["race"], "phases": ["competición"],
+      "level": null, "progression_group": null, "dose": null,
+      "warmup": "Según distancia y experiencia", "main_set": "Distancia objetivo", "recovery": null, "cooldown": "Según distancia y estado",
+      "intensity": "Por calibrar con una prueba válida", "placement": "Solo en la fecha de competición confirmada.",
+      "progression_id": null, "regression_id": null
+    }
+  ]
+}

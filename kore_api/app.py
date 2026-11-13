@@ -70,6 +70,7 @@ class WorkoutDetail(WorkoutBrief):
 
 class DaySummary(BaseModel):
     day: date
+    partial: bool
     sessions: int
     duration_seconds: float
     distance_meters: float
@@ -79,11 +80,34 @@ class DaySummary(BaseModel):
 
 class WeekSummary(BaseModel):
     week_start: date
+    complete: bool
     sessions: int
     duration_seconds: float
     distance_meters: float
     tss_total: float
     tss_sessions: int
+
+
+class SportSummary(BaseModel):
+    sport: str | None
+    sessions: int
+    duration_seconds: float
+    distance_meters: float
+    tss_total: float
+    tss_sessions: int
+    sessions_with_heart_rate: int
+    sessions_with_power: int
+
+
+class DataAvailability(BaseModel):
+    as_of: datetime
+    last_successful_ingestion_at: datetime | None = None
+    latest_ingestion_status: str | None = None
+    latest_summary_at: datetime | None
+    latest_decoded_at: datetime | None
+    pending_fit: int
+    unavailable_fit: int
+    pending_decode: int
 
 
 class TrainingContext(BaseModel):
@@ -98,6 +122,8 @@ class TrainingContext(BaseModel):
     tss_coverage: float
     days: list[DaySummary]
     weeks: list[WeekSummary]
+    sports: list[SportSummary]
+    availability: DataAvailability
     recent_workouts: list[WorkoutBrief]
 
 
@@ -174,7 +200,8 @@ def workout_detail(workout_key: str):
 
 @app.get("/api/v1/agent/context", response_model=TrainingContext)
 def training_context(days: int = Query(28, ge=1, le=365)):
-    first, today, start, end = calendar_bounds(days)
+    as_of = datetime.now(timezone.utc)
+    first, today, start, end = calendar_bounds(days, as_of)
     with connect() as db:
         daily = db.execute("""SELECT (s.start_time AT TIME ZONE 'Europe/Madrid')::date AS day,
             count(*)::int AS sessions,
@@ -188,20 +215,55 @@ def training_context(days: int = Query(28, ge=1, le=365)):
                 AND w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
                 AND w.fit_parser_version = %s
             GROUP BY 1 ORDER BY 1""", (start, end, PARSER_VERSION)).fetchall()
+        sports = db.execute("""SELECT s.sport, count(*)::int AS sessions,
+            coalesce(sum(s.timer_seconds), 0)::float8 AS duration_seconds,
+            coalesce(sum(s.distance_meters), 0)::float8 AS distance_meters,
+            coalesce(sum(s.training_stress_score), 0)::float8 AS tss_total,
+            count(s.training_stress_score)::int AS tss_sessions,
+            count(s.avg_heart_rate)::int AS sessions_with_heart_rate,
+            count(s.avg_power)::int AS sessions_with_power
+            FROM suunto_fit_sessions s
+            JOIN suunto_workouts w ON w.workout_key = s.workout_key
+            WHERE s.start_time >= %s AND s.start_time < %s
+                AND w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
+                AND w.fit_parser_version = %s
+            GROUP BY s.sport ORDER BY sessions DESC, s.sport""", (start, end, PARSER_VERSION)).fetchall()
+        availability = db.execute("""SELECT
+            to_timestamp(max(start_time_ms) / 1000.0) AS latest_summary_at,
+            count(*) FILTER (WHERE fit_status IS NULL)::int AS pending_fit,
+            count(*) FILTER (WHERE fit_status = 'missing')::int AS unavailable_fit,
+            count(*) FILTER (WHERE fit_status = 'ok' AND
+                (fit_parsed_sha256 IS DISTINCT FROM fit_sha256 OR
+                 fit_parser_version IS DISTINCT FROM %s))::int AS pending_decode
+            FROM suunto_workouts""", (PARSER_VERSION,)).fetchone()
+        availability["latest_decoded_at"] = db.execute("""SELECT max(s.start_time) AS at
+            FROM suunto_fit_sessions s JOIN suunto_workouts w ON w.workout_key = s.workout_key
+            WHERE w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
+                AND w.fit_parser_version = %s""", (PARSER_VERSION,)).fetchone()["at"]
+        if db.execute("SELECT to_regclass('suunto_pipeline_runs') AS name").fetchone()["name"]:
+            latest_run = db.execute("""SELECT status
+                FROM suunto_pipeline_runs ORDER BY started_at DESC LIMIT 1""").fetchone()
+            availability["latest_ingestion_status"] = latest_run["status"] if latest_run else None
+            availability["last_successful_ingestion_at"] = db.execute("""SELECT max(finished_at) AS at
+                FROM suunto_pipeline_runs WHERE status = 'succeeded'""").fetchone()["at"]
+        availability["as_of"] = as_of
         recent = db.execute(BRIEF_SELECT + " WHERE s.start_time >= %s AND s.start_time < %s ORDER BY s.start_time DESC LIMIT 10", (start, end)).fetchall()
     by_day = {row["day"]: row for row in daily}
     all_days = []
     for index in range(days):
         day = first + timedelta(days=index)
-        all_days.append(by_day.get(day, {
+        summary = by_day.get(day, {
             "day": day, "sessions": 0, "duration_seconds": 0.0,
             "distance_meters": 0.0, "tss_total": 0.0, "tss_sessions": 0,
-        }))
+        })
+        all_days.append({**summary, "partial": day == today})
     weekly = {}
     for row in all_days:
         monday = row["day"] - timedelta(days=row["day"].weekday())
         totals = weekly.setdefault(monday, {
-            "week_start": monday, "sessions": 0, "duration_seconds": 0.0,
+            "week_start": monday,
+            "complete": monday >= first and monday + timedelta(days=6) < today,
+            "sessions": 0, "duration_seconds": 0.0,
             "distance_meters": 0.0, "tss_total": 0.0, "tss_sessions": 0,
         })
         for field in ("sessions", "duration_seconds", "distance_meters", "tss_total", "tss_sessions"):
@@ -216,5 +278,6 @@ def training_context(days: int = Query(28, ge=1, le=365)):
         "tss_total": sum(row["tss_total"] for row in all_days),
         "tss_sessions": tss_count,
         "tss_coverage": tss_count / session_count if session_count else 0.0,
-        "days": all_days, "weeks": list(weekly.values()), "recent_workouts": recent,
+        "days": all_days, "weeks": list(weekly.values()), "sports": sports,
+        "availability": availability, "recent_workouts": recent,
     }

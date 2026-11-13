@@ -161,12 +161,94 @@
   },
   "components": {
     "schemas": {
+      "DataAvailability": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "last_successful_ingestion_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Successful Ingestion At"
+          },
+          "latest_ingestion_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Ingestion Status"
+          },
+          "latest_summary_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Summary At"
+          },
+          "latest_decoded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Decoded At"
+          },
+          "pending_fit": {
+            "type": "integer",
+            "title": "Pending Fit"
+          },
+          "unavailable_fit": {
+            "type": "integer",
+            "title": "Unavailable Fit"
+          },
+          "pending_decode": {
+            "type": "integer",
+            "title": "Pending Decode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "latest_summary_at",
+          "latest_decoded_at",
+          "pending_fit",
+          "unavailable_fit",
+          "pending_decode"
+        ],
+        "title": "DataAvailability"
+      },
       "DaySummary": {
         "properties": {
           "day": {
             "type": "string",
             "format": "date",
             "title": "Day"
+          },
+          "partial": {
+            "type": "boolean",
+            "title": "Partial"
           },
           "sessions": {
             "type": "integer",
@@ -192,6 +274,7 @@
         "type": "object",
         "required": [
           "day",
+          "partial",
           "sessions",
           "duration_seconds",
           "distance_meters",
@@ -344,6 +427,61 @@
         ],
         "title": "PipelineRun"
       },
+      "SportSummary": {
+        "properties": {
+          "sport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sport"
+          },
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "title": "Duration Seconds"
+          },
+          "distance_meters": {
+            "type": "number",
+            "title": "Distance Meters"
+          },
+          "tss_total": {
+            "type": "number",
+            "title": "Tss Total"
+          },
+          "tss_sessions": {
+            "type": "integer",
+            "title": "Tss Sessions"
+          },
+          "sessions_with_heart_rate": {
+            "type": "integer",
+            "title": "Sessions With Heart Rate"
+          },
+          "sessions_with_power": {
+            "type": "integer",
+            "title": "Sessions With Power"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sport",
+          "sessions",
+          "duration_seconds",
+          "distance_meters",
+          "tss_total",
+          "tss_sessions",
+          "sessions_with_heart_rate",
+          "sessions_with_power"
+        ],
+        "title": "SportSummary"
+      },
       "Status": {
         "properties": {
           "workouts": {
@@ -443,6 +581,16 @@
             "type": "array",
             "title": "Weeks"
           },
+          "sports": {
+            "items": {
+              "$ref": "#/components/schemas/SportSummary"
+            },
+            "type": "array",
+            "title": "Sports"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/DataAvailability"
+          },
           "recent_workouts": {
             "items": {
               "$ref": "#/components/schemas/WorkoutBrief"
@@ -464,6 +612,8 @@
           "tss_coverage",
           "days",
           "weeks",
+          "sports",
+          "availability",
           "recent_workouts"
         ],
         "title": "TrainingContext"
@@ -515,6 +665,10 @@
             "format": "date",
             "title": "Week Start"
           },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
           "sessions": {
             "type": "integer",
             "title": "Sessions"
@@ -539,6 +693,7 @@
         "type": "object",
         "required": [
           "week_start",
+          "complete",
           "sessions",
           "duration_seconds",
           "distance_meters",

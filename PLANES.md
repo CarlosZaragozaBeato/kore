@@ -36,3 +36,13 @@ En modo por etiqueta, una semana sin actividades coincidentes queda con las mét
 ```
 
 Se crea un Excel privado en `data/analysis/` con todas las semanas de carrera, sesiones individuales, vueltas, desnivel, otros deportes, cobertura de TSS y comparación con los objetivos locales. El archivo `data/analysis/agent-context.md` recoge los datos agregados y las instrucciones para el agente que diseñará los planes. No se exportan registros por segundo ni coordenadas. Tanto los libros como el contexto son privados y están excluidos de Git.
+
+## Perfil de entrenamiento observado
+
+Antes de diseñar bloques, genera el informe privado para el agente:
+
+```bash
+.venv/bin/python training_profile.py --fatigue "descripción actual" --limitations "limitaciones comunicadas"
+```
+
+El comando crea `data/analysis/estado-entrenamiento.md` y `.json`. Resume frecuencia, kilómetros, tiradas largas, ventanas recientes, otros deportes, cobertura del FIT y TSS, y el estado subjetivo comunicado. `--analysis-xlsx` permite indicar el libro histórico detallado que acompañará al informe. Las semanas incompletas no entran en las medias semanales. Las sensaciones indicadas con `--fatigue` y `--limitations` se guardan solo en los archivos privados y deben actualizarse antes de cada nueva planificación. El perfil describe entrenamientos observados; no diagnostica salud ni recuperación.

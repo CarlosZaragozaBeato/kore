@@ -1,8 +1,9 @@
 import unittest
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 
-from kore_api.app import app
+from kore_api.app import app, calendar_bounds
 
 
 class KoreApiContractTest(unittest.TestCase):
@@ -20,6 +21,11 @@ class KoreApiContractTest(unittest.TestCase):
         self.assertTrue(all(set(methods) == {"get"} for methods in spec["paths"].values()))
         self.assertNotIn("raw_payload", str(spec))
         self.assertNotIn("position_lat", str(spec))
+
+    def test_madrid_calendar_bounds_handle_spring_clock_change(self):
+        first, today, start, end = calendar_bounds(1, datetime(2026, 3, 29, 12, tzinfo=timezone.utc))
+        self.assertEqual((first, today), (date(2026, 3, 29), date(2026, 3, 29)))
+        self.assertEqual(end.astimezone(timezone.utc) - start.astimezone(timezone.utc), timedelta(hours=23))
 
 
 if __name__ == "__main__":

@@ -134,20 +134,16 @@ def run(max_files: int = 50, root: Path = ROOT, fetcher=fetch_fit) -> tuple[int,
             if not KEY_PATTERN.fullmatch(key):
                 raise ProbeError("Database contains an invalid workout key")
             path = root / "data" / "raw" / "suunto" / "fit" / f"{key}.fit"
-            if path.exists():
-                data = path.read_bytes()
-            else:
-                try:
-                    data = fetcher(access_token, config["SUUNTO_SUBSCRIPTION_KEY"], key)
-                except UnauthorizedFit:
-                    time.sleep(UNAUTHORIZED_COOLDOWN_SECONDS)
-                    refresh_token = current_refresh_token(token_path, config["SUUNTO_REFRESH_TOKEN"])
-                    access_token = renew_token(config["SUUNTO_CLIENT_ID"], config["SUUNTO_CLIENT_SECRET"], refresh_token, token_path)
-                    data = fetcher(access_token, config["SUUNTO_SUBSCRIPTION_KEY"], key)
+            try:
+                data = fetcher(access_token, config["SUUNTO_SUBSCRIPTION_KEY"], key)
+            except UnauthorizedFit:
+                time.sleep(UNAUTHORIZED_COOLDOWN_SECONDS)
+                refresh_token = current_refresh_token(token_path, config["SUUNTO_REFRESH_TOKEN"])
+                access_token = renew_token(config["SUUNTO_CLIENT_ID"], config["SUUNTO_CLIENT_SECRET"], refresh_token, token_path)
+                data = fetcher(access_token, config["SUUNTO_SUBSCRIPTION_KEY"], key)
             if data is not None:
                 validate_fit(data)
-                if not path.exists():
-                    atomic_private_write(path, data)
+                atomic_private_write(path, data)
                 downloaded += 1
             else:
                 missing += 1

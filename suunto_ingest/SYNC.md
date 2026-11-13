@@ -35,6 +35,8 @@ KORE_DATABASE_URL=postgresql://kore_user:kore_password@127.0.0.1:55432/kore_db \
 
 Los FIT se guardan en `data/raw/suunto/fit/` y su estado, tamaño y hash SHA-256 quedan en `suunto_workouts`. El proceso retoma únicamente los pendientes, limita el ritmo a una petición por segundo y espera antes de reintentar una vez si Suunto devuelve HTTP 401. Si vuelve a fallar, se detiene y conserva lo descargado. Suunto puede limitar las llamadas; no hay una causa confirmada para los 401 transitorios observados durante la carga inicial.
 
+Si Suunto cambia `lastModified` de un entrenamiento, la sincronización marca su FIT como pendiente. La siguiente descarga consulta de nuevo a Suunto aunque exista un archivo local anterior; solo lo sustituye después de recibir y validar el archivo nuevo. Hasta entonces, la API no usa sus métricas decodificadas como vigentes.
+
 Para decodificar los FIT locales y consultar sus sesiones, vueltas y muestras en PostgreSQL:
 
 ```bash

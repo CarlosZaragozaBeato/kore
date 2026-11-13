@@ -15,7 +15,7 @@ def sample_fit() -> bytes:
 
 
 class SuuntoFitTest(unittest.TestCase):
-    def test_saved_file_is_reused_after_interruption(self):
+    def test_pending_fit_is_refetched_even_when_old_file_exists(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)
             (root / ".env").write_text(
@@ -42,7 +42,7 @@ class SuuntoFitTest(unittest.TestCase):
                 self.assertEqual(fit.run(1, root, fetcher), (1, 0))
                 self.assertEqual(fit.run(1, root, fetcher), (1, 0))
 
-            self.assertEqual(len(fetched), 1)
+            self.assertEqual(len(fetched), 2)
             self.assertEqual(mark.call_count, 2)
             path = root / "data/raw/suunto/fit" / f"{key}.fit"
             self.assertEqual(path.read_bytes(), sample_fit())

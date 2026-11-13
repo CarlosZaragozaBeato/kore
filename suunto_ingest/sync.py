@@ -52,6 +52,7 @@ def ensure_schema(connection: psycopg.Connection) -> None:
                 updated_at TIMESTAMPTZ NOT NULL
             )
         """)
+        connection.execute("ALTER TABLE suunto_workouts ADD COLUMN IF NOT EXISTS fit_status TEXT")
         connection.execute("""
             INSERT INTO suunto_sync_state (source, cursor_ms, updated_at)
             VALUES ('workouts', 0, NOW())
@@ -145,7 +146,10 @@ def store_page(connection: psycopg.Connection, workouts: list[dict]) -> None:
                     last_modified_ms = EXCLUDED.last_modified_ms,
                     start_time_ms = EXCLUDED.start_time_ms,
                     raw_payload = EXCLUDED.raw_payload,
-                    fetched_at = EXCLUDED.fetched_at
+                    fetched_at = EXCLUDED.fetched_at,
+                    fit_status = CASE
+                        WHEN suunto_workouts.last_modified_ms IS DISTINCT FROM EXCLUDED.last_modified_ms
+                        THEN NULL ELSE suunto_workouts.fit_status END
             """, (
                 workout["workoutKey"],
                 workout.get("lastModified"),

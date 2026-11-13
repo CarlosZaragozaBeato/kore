@@ -310,6 +310,10 @@
             "format": "date",
             "title": "Through Date"
           },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
           "sessions": {
             "type": "integer",
             "title": "Sessions"
@@ -330,12 +334,23 @@
             "type": "integer",
             "title": "Tss Sessions"
           },
+          "tss_coverage": {
+            "type": "number",
+            "title": "Tss Coverage"
+          },
           "days": {
             "items": {
               "$ref": "#/components/schemas/DaySummary"
             },
             "type": "array",
             "title": "Days"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeekSummary"
+            },
+            "type": "array",
+            "title": "Weeks"
           },
           "recent_workouts": {
             "items": {
@@ -349,12 +364,15 @@
         "required": [
           "from_date",
           "through_date",
+          "timezone",
           "sessions",
           "duration_seconds",
           "distance_meters",
           "tss_total",
           "tss_sessions",
+          "tss_coverage",
           "days",
+          "weeks",
           "recent_workouts"
         ],
         "title": "TrainingContext"
@@ -398,6 +416,45 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WeekSummary": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "title": "Duration Seconds"
+          },
+          "distance_meters": {
+            "type": "number",
+            "title": "Distance Meters"
+          },
+          "tss_total": {
+            "type": "number",
+            "title": "Tss Total"
+          },
+          "tss_sessions": {
+            "type": "integer",
+            "title": "Tss Sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "sessions",
+          "duration_seconds",
+          "distance_meters",
+          "tss_total",
+          "tss_sessions"
+        ],
+        "title": "WeekSummary"
       },
       "WorkoutBrief": {
         "properties": {

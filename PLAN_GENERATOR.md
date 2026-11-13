@@ -12,6 +12,8 @@ Abrir `http://127.0.0.1:8092/`. La aplicación solo debe exponerse en localhost:
 
 Al abrir el formulario, [la evaluación de nivel](TRAINING_LEVEL.md) usa el histórico local para rellenar volumen, tirada larga y niveles iniciales de velocidad y sostenido. Muestra la evidencia y confianza; todos los valores siguen siendo editables. El Excel conserva la sugerencia y la elección realizada.
 
+La ruta `/feedback` registra RPE, disponibilidad, recuperación y molestias en el libro privado activo. La ruta `/adaptation` cruza esas observaciones con los resultados Suunto de la semana y propone mantener, reducir o permitir únicamente la progresión ya prevista. Consulta [PLAN_FEEDBACK.md](PLAN_FEEDBACK.md) para las reglas y límites. Esta revisión no modifica el plan.
+
 ## Parámetros y decisiones
 
 | Selección | Efecto |
@@ -31,9 +33,9 @@ El [catálogo de sesiones](SESSION_CATALOG.md) contiene dosis mínima, prevista 
 ## Límites de esta primera versión
 
 - El catálogo y la progresión son una estructura editable, no una prescripción clínica ni un cálculo de carga óptima. Kore sugiere el nivel desde exposición compatible en FIT, pero no interpreta esa sugerencia como preparación o tolerancia actual.
-- La progresión dentro de un borrador se calcula antes de observar su ejecución. Para adaptar semanas futuras a resultados y sensaciones, hay que generar otro borrador y revisar los cambios antes de sustituir el activo.
+- La progresión dentro de un borrador se calcula antes de observar su ejecución. La revisión semanal ya propone una acción a partir de resultados y sensaciones, pero aplicarla a semanas futuras sigue requiriendo generar o editar un borrador y confirmarlo expresamente.
 - Las sesiones estructuradas se colocan según los días disponibles y separación de la tirada larga. El motor no estima aún una capacidad individual de tolerar esas sesiones; si hay menos de cuatro días no programa calidad estructurada.
 - Una semana de descarga puede quedar por debajo del objetivo semanal. El aumento posterior recupera parte del volumen previo; el límite de incremento se aplica a las semanas de desarrollo, no a la comparación directa con la descarga.
 - La fecha de competición debe estar dentro de las 40 semanas siguientes y en un día seleccionado para entrenar. Los días fuera de esa selección quedan como descanso.
 
-La prioridad de desarrollo siguiente es añadir RPE y respuesta posterior a cada sesión y usar las semanas completadas para proponer mantener, progresar o reducir las semanas futuras, conservando siempre las anteriores.
+La prioridad de desarrollo siguiente es convertir una propuesta semanal aceptada en un borrador de las semanas futuras, mostrar el cambio exacto y aplicarlo solo tras confirmación, conservando siempre las semanas anteriores.

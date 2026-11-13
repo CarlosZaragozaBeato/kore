@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from dataclasses import asdict
 from html import escape
 from io import BytesIO
@@ -12,15 +12,20 @@ from urllib.parse import parse_qs
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from openpyxl import load_workbook
 from pydantic import ValidationError
 import psycopg
 
 from plan_builder import activate_draft, build_book
+from plan_adaptation import suggest_adaptation
 from plan_engine import PlanDraft, PlanInputs, WEEKDAYS, generate
-from training_level import TrainingAssessment, assess_local_history
+from plan_excel import ACTIVE, save_with_backup
+from plan_feedback import FeedbackInput, feedback_entries, upsert_feedback
+from plan_daily_sync import validate
+from training_level import MADRID, TrainingAssessment, assess_local_history
 
 
-app = FastAPI(title="Kore: generador de planes", version="0.2.0")
+app = FastAPI(title="Kore: generador de planes", version="0.3.0")
 _drafts: dict[str, PlanDraft] = {}
 _assessment_cache: tuple[float, TrainingAssessment] | None = None
 CSS = """<style>body{font:16px system-ui;max-width:1050px;margin:2rem auto;padding:0 1rem;color:#20242a}
@@ -95,7 +100,9 @@ def form(error: str = "", assessment: TrainingAssessment | None = None,
                          f"<input type='hidden' name='assessment_as_of' value='{assessment.through_date}'>"
                          f"<input type='hidden' name='assessment_window_days' value='{assessment.window_days}'>"
                          if assessment else "")
-    return ("<h1>Generador de planes Kore</h1><p>Selecciona los parámetros y revisa el borrador "
+    return ("<h1>Generador de planes Kore</h1><p><a href='/feedback'>Registrar sensaciones</a> · "
+            "<a href='/adaptation'>Revisar adaptación semanal</a></p>"
+            "<p>Selecciona los parámetros y revisa el borrador "
             "antes de activar un bloque. Los resultados de Suunto solo se insertan en el activo.</p>"
             + assessment_panel(assessment, assessment_error)
             + (f"<div class='error'>{escape(error)}</div>" if error else "")
@@ -145,6 +152,116 @@ def home():
 @app.get("/api/assessment")
 def assessment_api():
     return asdict(current_assessment())
+
+
+def _optional_int(raw: dict[str, list[str]], key: str) -> int | None:
+    value = raw.get(key, [""])[-1].strip()
+    return int(value) if value else None
+
+
+def feedback_form(message: str = "", error: str = "") -> str:
+    if not ACTIVE.exists():
+        return "<h1>Feedback</h1><div class='error'>No hay bloque activo.</div><p><a href='/'>Volver</a></p>"
+    book = load_workbook(ACTIVE, read_only=True, data_only=True)
+    try:
+        start, end, tag = validate(book)
+        entries = feedback_entries(book)
+    finally:
+        book.close()
+    rows = "".join(
+        f"<tr><td>{entry.day}</td><td>{entry.session_rpe or ''}</td>"
+        f"<td>{entry.readiness_before or ''}</td><td>{entry.recovery_after or ''}</td>"
+        f"<td>{entry.soreness_pain if entry.soreness_pain is not None else ''}</td>"
+        f"<td>{escape(entry.notes or '')}</td></tr>" for entry in entries[-14:]
+    )
+    today = datetime.now(timezone.utc).astimezone(MADRID).date()
+    if today < start:
+        return (f"<h1>Sensaciones del bloque activo</h1><p>{escape(tag)} · {start}–{end}</p>"
+                f"<div class='notice'>El bloque empieza el {start}; todavía no hay una fecha válida para feedback diario.</div>"
+                "<p><a href='/adaptation'>Revisar estado</a> · <a href='/'>Volver</a></p>")
+    default_day = min(max(today, start), end)
+    return (f"<h1>Sensaciones del bloque activo</h1><p>{escape(tag)} · {start}–{end}</p>"
+            + (f"<div class='notice'>{escape(message)}</div>" if message else "")
+            + (f"<div class='error'>{escape(error)}</div>" if error else "")
+            + "<form method='post' action='/feedback'>"
+            + field("Fecha", "day", default_day.isoformat(), type_="date")
+            + field("RPE de la sesión (1–10)", "session_rpe", "", type_="number", required=False)
+            + field("Disponibilidad antes (1–5)", "readiness_before", "", type_="number", required=False)
+            + field("Recuperación posterior (1–5)", "recovery_after", "", type_="number", required=False)
+            + field("Molestia o dolor (0–10)", "soreness_pain", "", type_="number", required=False)
+            + "<label>Notas<br><textarea name='notes' maxlength='1000' rows='4' cols='70'></textarea></label>"
+            + "<button>Guardar feedback</button></form>"
+            + "<h2>Últimas observaciones</h2><table><tr><th>Fecha</th><th>RPE</th>"
+            + "<th>Disponibilidad</th><th>Recuperación</th><th>Molestia</th><th>Notas</th></tr>"
+            + rows + "</table><p><a href='/adaptation'>Revisar adaptación</a> · <a href='/'>Volver</a></p>")
+
+
+@app.get("/feedback", response_class=HTMLResponse)
+def feedback_page():
+    try:
+        return page(feedback_form())
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Feedback</h1><div class='error'>{escape(str(exc))}</div><p><a href='/'>Volver</a></p>")
+
+
+@app.post("/feedback", response_class=HTMLResponse)
+async def save_feedback(request: Request):
+    raw = parse_qs((await request.body()).decode("utf-8"), keep_blank_values=True)
+    try:
+        feedback = FeedbackInput(
+            day=raw.get("day", [""])[-1],
+            session_rpe=_optional_int(raw, "session_rpe"),
+            readiness_before=_optional_int(raw, "readiness_before"),
+            recovery_after=_optional_int(raw, "recovery_after"),
+            soreness_pain=_optional_int(raw, "soreness_pain"),
+            notes=raw.get("notes", [""])[-1],
+        )
+        now = datetime.now(timezone.utc).astimezone(MADRID)
+        if feedback.day > now.date():
+            raise ValueError("No se puede registrar feedback para una fecha futura")
+        book = load_workbook(ACTIVE)
+        try:
+            upsert_feedback(book, feedback, now)
+            save_with_backup(book, ACTIVE)
+        finally:
+            book.close()
+        return page(feedback_form(message="Feedback guardado; una observación de la misma fecha se actualiza."))
+    except (ValidationError, ValueError, OSError, KeyError) as exc:
+        return page(feedback_form(error=str(exc)))
+
+
+@app.get("/adaptation", response_class=HTMLResponse)
+def adaptation_page():
+    if not ACTIVE.exists():
+        return page("<h1>Adaptación semanal</h1><div class='error'>No hay bloque activo.</div><p><a href='/'>Volver</a></p>")
+    try:
+        book = load_workbook(ACTIVE, read_only=True, data_only=True)
+        try:
+            today = datetime.now(timezone.utc).astimezone(MADRID).date()
+            suggestion = suggest_adaptation(book, today)
+        finally:
+            book.close()
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Adaptación semanal</h1><div class='error'>{escape(str(exc))}</div><p><a href='/'>Volver</a></p>")
+    labels = {"insufficient_data": "Datos insuficientes", "reduce": "Reducir",
+              "hold": "Mantener", "progress": "Permitir progresión prevista"}
+    reasons = "".join(f"<li>{escape(reason)}</li>" for reason in suggestion.reasons)
+    return page(
+        f"<h1>Adaptación semanal: {labels[suggestion.action]}</h1>"
+        f"<p>Semana evaluada: {suggestion.evaluated_week or 'ninguna'}; "
+        f"semana objetivo: {suggestion.target_week or 'ninguna'}; confianza: {suggestion.confidence}.</p>"
+        f"<table><tr><th>Días transcurridos planificados</th><th>Con Suunto</th><th>Con feedback</th>"
+        f"<th>Km real/previsto comparable</th><th>RPE medio</th><th>Recuperación mínima</th>"
+        f"<th>Molestia máxima</th></tr><tr><td>{suggestion.completed_planned_days}</td>"
+        f"<td>{suggestion.days_with_suunto}</td><td>{suggestion.days_with_feedback}</td>"
+        f"<td>{suggestion.comparable_km_ratio if suggestion.comparable_km_ratio is not None else ''}</td>"
+        f"<td>{suggestion.average_rpe if suggestion.average_rpe is not None else ''}</td>"
+        f"<td>{suggestion.minimum_recovery if suggestion.minimum_recovery is not None else ''}</td>"
+        f"<td>{suggestion.maximum_soreness_pain if suggestion.maximum_soreness_pain is not None else ''}</td></tr></table>"
+        f"<ul>{reasons}</ul><p>{escape(suggestion.proposed_effect)}</p>"
+        "<p>Esta pantalla propone una acción y no modifica el plan.</p>"
+        "<p><a href='/feedback'>Registrar sensaciones</a> · <a href='/'>Volver</a></p>"
+    )
 
 
 @app.post("/preview", response_class=HTMLResponse)

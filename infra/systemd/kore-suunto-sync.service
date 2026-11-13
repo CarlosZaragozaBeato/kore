@@ -1,0 +1,11 @@
+[Unit]
+Description=Kore Suunto ingestion
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/develop/kore_develop/kore
+ExecStartPre=%h/Documents/develop/kore_develop/kore/infra/postgres-local.sh ensure
+ExecStart=%h/Documents/develop/kore_develop/kore/.venv/bin/python -m suunto_ingest.pipeline
+TimeoutStartSec=2h

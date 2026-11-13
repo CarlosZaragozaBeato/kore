@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly verified Kore backup
+
+[Timer]
+OnCalendar=Sun *-*-* 07:15:00
+Persistent=true
+Unit=kore-backup.service
+
+[Install]
+WantedBy=timers.target

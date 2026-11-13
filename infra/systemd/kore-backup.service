@@ -1,0 +1,9 @@
+[Unit]
+Description=Back up and restore-check Kore data
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/develop/kore_develop/kore
+ExecStartPre=%h/Documents/develop/kore_develop/kore/infra/postgres-local.sh ensure
+ExecStart=%h/Documents/develop/kore_develop/kore/.venv/bin/python -m infra.backup_local create --verify
+TimeoutStartSec=3h

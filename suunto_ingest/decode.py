@@ -109,6 +109,8 @@ def run(max_files: int = 50, root: Path = ROOT) -> tuple[int, int, int]:
     database_url = os.environ.get("KORE_DATABASE_URL") or config.get("KORE_DATABASE_URL", DEFAULT_DATABASE_URL)
     with psycopg.connect(database_url, autocommit=True, connect_timeout=10) as db:
         ensure_schema(db)
+        if not db.execute("SELECT pg_try_advisory_lock(hashtext('kore:suunto'))").fetchone()[0]:
+            raise ProbeError("Another Suunto operation is already running")
         rows = db.execute("""SELECT workout_key, fit_sha256 FROM suunto_workouts
             WHERE fit_status = 'ok' AND
                 (fit_parsed_sha256 IS DISTINCT FROM fit_sha256 OR fit_parser_version IS DISTINCT FROM %s)

@@ -275,6 +275,75 @@
         ],
         "title": "Lap"
       },
+      "PipelineRun": {
+        "properties": {
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "summaries": {
+            "type": "integer",
+            "title": "Summaries"
+          },
+          "fit_downloaded": {
+            "type": "integer",
+            "title": "Fit Downloaded"
+          },
+          "fit_missing": {
+            "type": "integer",
+            "title": "Fit Missing"
+          },
+          "fit_decoded": {
+            "type": "integer",
+            "title": "Fit Decoded"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "finished_at",
+          "status",
+          "stage",
+          "summaries",
+          "fit_downloaded",
+          "fit_missing",
+          "fit_decoded",
+          "error_type"
+        ],
+        "title": "PipelineRun"
+      },
       "Status": {
         "properties": {
           "workouts": {
@@ -288,6 +357,28 @@
           "decoded_workouts": {
             "type": "integer",
             "title": "Decoded Workouts"
+          },
+          "latest_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Success At"
           }
         },
         "type": "object",

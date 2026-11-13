@@ -20,8 +20,13 @@ case "${1:-}" in
   status)
     "$pg_ctl" -D "$data_dir" status
     ;;
+  ensure)
+    if ! "$pg_ctl" -D "$data_dir" status >/dev/null 2>&1; then
+      "$pg_ctl" -D "$data_dir" -l "$data_dir/server.log" -o '-h 127.0.0.1 -p 55432 -k /tmp' start
+    fi
+    ;;
   *)
-    echo "Usage: $0 {start|stop|status}" >&2
+    echo "Usage: $0 {start|stop|status|ensure}" >&2
     exit 2
     ;;
 esac

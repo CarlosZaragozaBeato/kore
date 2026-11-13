@@ -24,6 +24,24 @@ KORE_DATABASE_URL=postgresql://kore_user:kore_password@127.0.0.1:55432/kore_db \
   .venv/bin/python -m suunto_ingest.sync
 ```
 
+Para ejecutar toda la cadena (resúmenes, FIT pendientes y decodificación) y registrar su resultado:
+
+```bash
+.venv/bin/python -m suunto_ingest.pipeline
+```
+
+Lee `KORE_DATABASE_URL` de `.env` o del entorno. La ejecución guarda cada intento en `suunto_pipeline_runs`, con hora de inicio y fin, etapa, contadores y tipo de error. Un intento interrumpido queda identificado al iniciar el siguiente. Si falla, los avances de cada etapa se conservan para reanudar. El endpoint `/api/v1/status` muestra el último intento y el último éxito.
+
+En esta máquina se preparó `infra/systemd/kore-suunto-sync.service` y `.timer` para ejecutar la cadena cada día a las 06:30, hora local. El servicio asegura que la base local esté arrancada. Instalación de las unidades del repositorio:
+
+```bash
+systemctl --user link "$PWD/infra/systemd/kore-suunto-sync.service" "$PWD/infra/systemd/kore-suunto-sync.timer"
+systemctl --user enable --now kore-suunto-sync.timer
+systemctl --user list-timers kore-suunto-sync.timer
+```
+
+La unidad usa la ruta actual de este repositorio dentro de `~/Documents/develop`; si se mueve, hay que actualizarla. `Persistent=true` ejecuta una sincronización pendiente al volver a iniciar el gestor de usuario. El temporizador depende de la sesión de usuario mientras no se habilite `linger`.
+
 La primera ejecución consulta todo el histórico disponible; las siguientes vuelven a consultar una ventana de 24 horas por posibles modificaciones tardías. Cada página se guarda como JSON original en `data/raw/suunto/workouts/` y se incorpora a `suunto_workouts` usando `workoutKey` como clave. El cursor de `suunto_sync_state` solo avanza tras completar todas las páginas. Una interrupción obliga a repetir la ventana y no duplica filas. Un bloqueo de PostgreSQL impide dos sincronizaciones simultáneas.
 
 Para descargar los FIT pendientes después de sincronizar los resúmenes:

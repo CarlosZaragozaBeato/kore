@@ -18,10 +18,24 @@ app = FastAPI(title="Kore Training API", version="0.1.0", description="Local rea
 LOCAL_TIMEZONE = ZoneInfo("Europe/Madrid")
 
 
+class PipelineRun(BaseModel):
+    started_at: datetime
+    finished_at: datetime | None
+    status: str
+    stage: str
+    summaries: int
+    fit_downloaded: int
+    fit_missing: int
+    fit_decoded: int
+    error_type: str | None
+
+
 class Status(BaseModel):
     workouts: int
     fit_files: int
     decoded_workouts: int
+    latest_run: PipelineRun | None = None
+    latest_success_at: datetime | None = None
 
 
 class WorkoutBrief(BaseModel):
@@ -123,6 +137,12 @@ def status():
             count(*) FILTER (WHERE fit_status = 'ok' AND fit_parsed_sha256 = fit_sha256
                 AND fit_parser_version = %s) AS decoded_workouts
             FROM suunto_workouts""", (PARSER_VERSION,)).fetchone()
+        if db.execute("SELECT to_regclass('suunto_pipeline_runs') AS name").fetchone()["name"]:
+            row["latest_run"] = db.execute("""SELECT started_at, finished_at, status, stage,
+                summaries, fit_downloaded, fit_missing, fit_decoded, error_type
+                FROM suunto_pipeline_runs ORDER BY started_at DESC LIMIT 1""").fetchone()
+            row["latest_success_at"] = db.execute("""SELECT max(finished_at) AS at
+                FROM suunto_pipeline_runs WHERE status = 'succeeded'""").fetchone()["at"]
     return row
 
 

@@ -26,4 +26,5 @@ El backend futuro no debe implementarse en Java. El servicio Quarkus actual es c
 - `services/suunto-service/`: implementación Java existente, solo como referencia hasta su sustitución.
 - `infra/`: infraestructura local.
 - `suunto_ingest/`: extractor Python, instrucciones de prueba y sincronización. La base y los JSON reales viven en `data/`, fuera de Git.
+- `suunto_ingest/pipeline.py`: ejecuta resúmenes, FIT y decodificación en orden; registra intentos en PostgreSQL. `infra/systemd/` contiene las unidades para programarlo localmente.
 - `kore_api/`: API local de solo lectura y contrato OpenAPI para visualización y agentes. Mantenerla ligada a localhost mientras no tenga autenticación.

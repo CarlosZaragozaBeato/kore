@@ -64,7 +64,30 @@ KORE_DATABASE_URL=postgresql://kore_user:kore_password@127.0.0.1:55432/kore_db \
 
 Las tablas son `suunto_fit_sessions`, `suunto_fit_laps` y `suunto_fit_records`. El decodificador marca el hash y su versión en `suunto_workouts`; vuelve a procesar un entrenamiento solo si cambia el FIT o el decodificador. Las coordenadas de `suunto_fit_records` están en grados. Los FIT originales permanecen intactos para reprocesarlos.
 
-La base local, los JSON, los FIT y `data/secrets/suunto-token.json` contienen datos privados y requieren copia de seguridad. Se creó una copia inicial de la base y un archivo de originales más token en `data/backups/`; no se ha probado una restauración completa. No arranques el servicio Java anterior contra esta base: tiene configurado `drop-and-create`.
+La base local, los JSON, los FIT y `data/secrets/suunto-token.json` contienen datos privados. Para crear una copia conjunta en `data/backups/`:
+
+```bash
+.venv/bin/python -m infra.backup_local create
+```
+
+Usa `create --verify` para ejecutar inmediatamente la prueba de restauración sobre la copia recién creada.
+
+El comando espera a que no haya una operación Suunto en curso y crea `database.dump`, `raw-and-token.tar.gz` y `manifest.json` en una carpeta privada. La copia incluye el token rotado, pero no el `.env`. Para probar una copia sin tocar la base activa:
+
+```bash
+.venv/bin/python -m infra.backup_local verify data/backups/kore-<fecha>-<id>
+```
+
+La verificación comprueba los hashes, restaura la base en un clúster PostgreSQL temporal, compara los recuentos y contrasta cada FIT restaurado con el hash almacenado en la base. El clúster se elimina al terminar. Estas copias están en el mismo disco que la base: para protegerse de una avería del disco hay que guardarlas también en otro soporte privado. No arranques el servicio Java anterior contra esta base: tiene configurado `drop-and-create`.
+
+En esta máquina, `infra/systemd/kore-backup.timer` ejecuta `create --verify` cada domingo a las 07:15. Para instalarlo:
+
+```bash
+systemctl --user link "$PWD/infra/systemd/kore-backup.service" "$PWD/infra/systemd/kore-backup.timer"
+systemctl --user enable --now kore-backup.timer
+```
+
+El temporizador se recupera al iniciar sesión si se perdió una ejecución. No elimina copias antiguas automáticamente; revisa el espacio disponible y mueve copias privadas a otro soporte.
 
 Pruebas:
 

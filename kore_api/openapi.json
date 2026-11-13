@@ -157,6 +157,60 @@
           }
         }
       }
+    },
+    "/api/v1/agent/next-session/evidence": {
+      "get": {
+        "summary": "Next Session Evidence",
+        "operationId": "next_session_evidence_api_v1_agent_next_session_evidence_get",
+        "parameters": [
+          {
+            "name": "target_sport",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "default": "running",
+              "title": "Target Sport"
+            }
+          },
+          {
+            "name": "window_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 7,
+              "title": "Window Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextSessionEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -357,6 +411,69 @@
           "avg_heart_rate"
         ],
         "title": "Lap"
+      },
+      "NextSessionEvidence": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "target_sport": {
+            "type": "string",
+            "title": "Target Sport"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/TrainingWindow"
+          },
+          "recent": {
+            "$ref": "#/components/schemas/TrainingWindow"
+          },
+          "last_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkoutBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_target_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkoutBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "availability": {
+            "$ref": "#/components/schemas/DataAvailability"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "timezone",
+          "target_sport",
+          "window_days",
+          "previous",
+          "recent",
+          "last_session",
+          "last_target_session",
+          "availability"
+        ],
+        "title": "NextSessionEvidence"
       },
       "PipelineRun": {
         "properties": {
@@ -617,6 +734,64 @@
           "recent_workouts"
         ],
         "title": "TrainingContext"
+      },
+      "TrainingWindow": {
+        "properties": {
+          "from_date": {
+            "type": "string",
+            "format": "date",
+            "title": "From Date"
+          },
+          "through_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Through Date"
+          },
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "title": "Duration Seconds"
+          },
+          "distance_meters": {
+            "type": "number",
+            "title": "Distance Meters"
+          },
+          "tss_total": {
+            "type": "number",
+            "title": "Tss Total"
+          },
+          "tss_sessions": {
+            "type": "integer",
+            "title": "Tss Sessions"
+          },
+          "tss_coverage": {
+            "type": "number",
+            "title": "Tss Coverage"
+          },
+          "sports": {
+            "items": {
+              "$ref": "#/components/schemas/SportSummary"
+            },
+            "type": "array",
+            "title": "Sports"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_date",
+          "through_date",
+          "sessions",
+          "duration_seconds",
+          "distance_meters",
+          "tss_total",
+          "tss_sessions",
+          "tss_coverage",
+          "sports"
+        ],
+        "title": "TrainingWindow"
       },
       "ValidationError": {
         "properties": {

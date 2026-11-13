@@ -1,0 +1,13 @@
+[Unit]
+Description=Kore local training API
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/develop/kore_develop/kore
+ExecStartPre=%h/Documents/develop/kore_develop/kore/infra/postgres-local.sh ensure
+ExecStart=%h/Documents/develop/kore_develop/kore/.venv/bin/uvicorn kore_api.app:app --host 127.0.0.1 --port 8080
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=default.target

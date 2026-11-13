@@ -127,6 +127,30 @@ class TrainingContext(BaseModel):
     recent_workouts: list[WorkoutBrief]
 
 
+class TrainingWindow(BaseModel):
+    from_date: date
+    through_date: date
+    sessions: int
+    duration_seconds: float
+    distance_meters: float
+    tss_total: float
+    tss_sessions: int
+    tss_coverage: float
+    sports: list[SportSummary]
+
+
+class NextSessionEvidence(BaseModel):
+    as_of: datetime
+    timezone: str
+    target_sport: str
+    window_days: int
+    previous: TrainingWindow
+    recent: TrainingWindow
+    last_session: WorkoutBrief | None
+    last_target_session: WorkoutBrief | None
+    availability: DataAvailability
+
+
 def calendar_bounds(days: int, now: datetime | None = None) -> tuple[date, date, datetime, datetime]:
     today = (now or datetime.now(timezone.utc)).astimezone(LOCAL_TIMEZONE).date()
     first = today - timedelta(days=days - 1)
@@ -153,6 +177,29 @@ BRIEF_SELECT = f"""SELECT w.workout_key, s.start_time, s.sport,
     LEFT JOIN suunto_fit_sessions s ON s.workout_key = w.workout_key AND s.session_index = 0
         AND w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
         AND w.fit_parser_version = {PARSER_VERSION}"""
+
+
+def read_availability(db: psycopg.Connection, as_of: datetime) -> dict:
+    availability = db.execute("""SELECT
+        to_timestamp(max(start_time_ms) / 1000.0) AS latest_summary_at,
+        count(*) FILTER (WHERE fit_status IS NULL)::int AS pending_fit,
+        count(*) FILTER (WHERE fit_status = 'missing')::int AS unavailable_fit,
+        count(*) FILTER (WHERE fit_status = 'ok' AND
+            (fit_parsed_sha256 IS DISTINCT FROM fit_sha256 OR
+             fit_parser_version IS DISTINCT FROM %s))::int AS pending_decode
+        FROM suunto_workouts""", (PARSER_VERSION,)).fetchone()
+    availability["latest_decoded_at"] = db.execute("""SELECT max(s.start_time) AS at
+        FROM suunto_fit_sessions s JOIN suunto_workouts w ON w.workout_key = s.workout_key
+        WHERE w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
+            AND w.fit_parser_version = %s""", (PARSER_VERSION,)).fetchone()["at"]
+    if db.execute("SELECT to_regclass('suunto_pipeline_runs') AS name").fetchone()["name"]:
+        latest_run = db.execute("""SELECT status
+            FROM suunto_pipeline_runs ORDER BY started_at DESC LIMIT 1""").fetchone()
+        availability["latest_ingestion_status"] = latest_run["status"] if latest_run else None
+        availability["last_successful_ingestion_at"] = db.execute("""SELECT max(finished_at) AS at
+            FROM suunto_pipeline_runs WHERE status = 'succeeded'""").fetchone()["at"]
+    availability["as_of"] = as_of
+    return availability
 
 
 @app.get("/api/v1/status", response_model=Status)
@@ -228,25 +275,7 @@ def training_context(days: int = Query(28, ge=1, le=365)):
                 AND w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
                 AND w.fit_parser_version = %s
             GROUP BY s.sport ORDER BY sessions DESC, s.sport""", (start, end, PARSER_VERSION)).fetchall()
-        availability = db.execute("""SELECT
-            to_timestamp(max(start_time_ms) / 1000.0) AS latest_summary_at,
-            count(*) FILTER (WHERE fit_status IS NULL)::int AS pending_fit,
-            count(*) FILTER (WHERE fit_status = 'missing')::int AS unavailable_fit,
-            count(*) FILTER (WHERE fit_status = 'ok' AND
-                (fit_parsed_sha256 IS DISTINCT FROM fit_sha256 OR
-                 fit_parser_version IS DISTINCT FROM %s))::int AS pending_decode
-            FROM suunto_workouts""", (PARSER_VERSION,)).fetchone()
-        availability["latest_decoded_at"] = db.execute("""SELECT max(s.start_time) AS at
-            FROM suunto_fit_sessions s JOIN suunto_workouts w ON w.workout_key = s.workout_key
-            WHERE w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
-                AND w.fit_parser_version = %s""", (PARSER_VERSION,)).fetchone()["at"]
-        if db.execute("SELECT to_regclass('suunto_pipeline_runs') AS name").fetchone()["name"]:
-            latest_run = db.execute("""SELECT status
-                FROM suunto_pipeline_runs ORDER BY started_at DESC LIMIT 1""").fetchone()
-            availability["latest_ingestion_status"] = latest_run["status"] if latest_run else None
-            availability["last_successful_ingestion_at"] = db.execute("""SELECT max(finished_at) AS at
-                FROM suunto_pipeline_runs WHERE status = 'succeeded'""").fetchone()["at"]
-        availability["as_of"] = as_of
+        availability = read_availability(db, as_of)
         recent = db.execute(BRIEF_SELECT + " WHERE s.start_time >= %s AND s.start_time < %s ORDER BY s.start_time DESC LIMIT 10", (start, end)).fetchall()
     by_day = {row["day"]: row for row in daily}
     all_days = []
@@ -280,4 +309,76 @@ def training_context(days: int = Query(28, ge=1, le=365)):
         "tss_coverage": tss_count / session_count if session_count else 0.0,
         "days": all_days, "weeks": list(weekly.values()), "sports": sports,
         "availability": availability, "recent_workouts": recent,
+    }
+
+
+def summarize_window(first: date, last: date, sports: list[dict]) -> dict:
+    sessions = sum(row["sessions"] for row in sports)
+    tss_sessions = sum(row["tss_sessions"] for row in sports)
+    return {
+        "from_date": first, "through_date": last,
+        "sessions": sessions,
+        "duration_seconds": sum(row["duration_seconds"] for row in sports),
+        "distance_meters": sum(row["distance_meters"] for row in sports),
+        "tss_total": sum(row["tss_total"] for row in sports),
+        "tss_sessions": tss_sessions,
+        "tss_coverage": tss_sessions / sessions if sessions else 0.0,
+        "sports": sports,
+    }
+
+
+def completed_window_bounds(window_days: int, now: datetime) -> tuple[date, date, date, datetime, datetime, datetime]:
+    today = now.astimezone(LOCAL_TIMEZONE).date()
+    recent_first = today - timedelta(days=window_days)
+    previous_first = recent_first - timedelta(days=window_days)
+    return (
+        today, previous_first, recent_first,
+        datetime.combine(previous_first, time.min, LOCAL_TIMEZONE),
+        datetime.combine(recent_first, time.min, LOCAL_TIMEZONE),
+        datetime.combine(today, time.min, LOCAL_TIMEZONE),
+    )
+
+
+@app.get("/api/v1/agent/next-session/evidence", response_model=NextSessionEvidence)
+def next_session_evidence(
+    target_sport: str = Query("running", min_length=1, max_length=64),
+    window_days: int = Query(7, ge=1, le=90),
+):
+    as_of = datetime.now(timezone.utc)
+    today, previous_first, recent_first, previous_start, recent_start, end = completed_window_bounds(
+        window_days, as_of
+    )
+    with connect() as db:
+        rows = db.execute("""SELECT
+            CASE WHEN s.start_time >= %s THEN 'recent' ELSE 'previous' END AS period,
+            s.sport, count(*)::int AS sessions,
+            coalesce(sum(s.timer_seconds), 0)::float8 AS duration_seconds,
+            coalesce(sum(s.distance_meters), 0)::float8 AS distance_meters,
+            coalesce(sum(s.training_stress_score), 0)::float8 AS tss_total,
+            count(s.training_stress_score)::int AS tss_sessions,
+            count(s.avg_heart_rate)::int AS sessions_with_heart_rate,
+            count(s.avg_power)::int AS sessions_with_power
+            FROM suunto_fit_sessions s
+            JOIN suunto_workouts w ON w.workout_key = s.workout_key
+            WHERE s.start_time >= %s AND s.start_time < %s
+                AND w.fit_status = 'ok' AND w.fit_parsed_sha256 = w.fit_sha256
+                AND w.fit_parser_version = %s
+            GROUP BY 1, s.sport ORDER BY 1, sessions DESC, s.sport""",
+            (recent_start, previous_start, end, PARSER_VERSION)).fetchall()
+        last_session = db.execute(BRIEF_SELECT + " WHERE s.start_time IS NOT NULL"
+            " ORDER BY s.start_time DESC LIMIT 1").fetchone()
+        last_target_session = db.execute(BRIEF_SELECT + " WHERE s.start_time IS NOT NULL"
+            " AND s.sport = %s ORDER BY s.start_time DESC LIMIT 1", (target_sport,)).fetchone()
+        availability = read_availability(db, as_of)
+    previous_sports = [{key: value for key, value in row.items() if key != "period"}
+                       for row in rows if row["period"] == "previous"]
+    recent_sports = [{key: value for key, value in row.items() if key != "period"}
+                     for row in rows if row["period"] == "recent"]
+    return {
+        "as_of": as_of, "timezone": "Europe/Madrid", "target_sport": target_sport,
+        "window_days": window_days,
+        "previous": summarize_window(previous_first, recent_first - timedelta(days=1), previous_sports),
+        "recent": summarize_window(recent_first, today - timedelta(days=1), recent_sports),
+        "last_session": last_session, "last_target_session": last_target_session,
+        "availability": availability,
     }

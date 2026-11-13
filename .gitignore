@@ -2,3 +2,7 @@
 .idea/
 *.iml
 /backend/local.db
+/data/
+__pycache__/
+*.pyc
+.venv/

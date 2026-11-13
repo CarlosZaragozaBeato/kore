@@ -41,11 +41,17 @@ def build_book(draft: PlanDraft, *, active: bool = False) -> Workbook:
         ("Km semanales actuales", inputs.current_weekly_km),
         ("Tirada larga reciente", inputs.recent_long_run_km),
         ("Fatiga declarada", inputs.fatigue),
+        ("Nivel velocidad sugerido por Suunto", inputs.suggested_speed_level),
+        ("Confianza sugerencia velocidad", inputs.speed_suggestion_confidence),
+        ("Nivel sostenido sugerido por Suunto", inputs.suggested_sustained_level),
+        ("Confianza sugerencia sostenido", inputs.sustained_suggestion_confidence),
+        ("Evaluación Suunto vigente a", inputs.assessment_as_of),
+        ("Ventana de evaluación (días)", inputs.assessment_window_days),
         ("Versión del catálogo", default_catalog().catalog_version),
     )
     for row in values:
         config.append(row)
-    for index in (4, 5, 15):
+    for index in (4, 5, 15, 24):
         config.cell(index, 2).number_format = "dd/mm/yyyy"
     config.column_dimensions["A"].width = 32
     config.column_dimensions["B"].width = 48

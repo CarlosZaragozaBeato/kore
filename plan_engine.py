@@ -33,6 +33,14 @@ class PlanInputs(BaseModel):
     quality_sessions_per_week: int = Field(default=2, ge=0, le=2)
     speed_entry_level: int = Field(ge=0, le=3)
     sustained_entry_level: int = Field(ge=0, le=3)
+    suggested_speed_level: int | None = Field(default=None, ge=0, le=3)
+    suggested_sustained_level: int | None = Field(default=None, ge=0, le=3)
+    speed_suggestion_confidence: Literal["low", "medium"] | None = None
+    sustained_suggestion_confidence: Literal["low", "medium"] | None = None
+    speed_evidence_summary: str | None = Field(default=None, max_length=2000)
+    sustained_evidence_summary: str | None = Field(default=None, max_length=2000)
+    assessment_as_of: date | None = None
+    assessment_window_days: int | None = Field(default=None, ge=28, le=365)
     max_weekly_increase_km: float = Field(ge=0, le=30)
     max_long_run_increase_km: float = Field(ge=0, le=10)
     deload_every: int = Field(ge=2, le=8)
@@ -228,7 +236,9 @@ def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanD
                                   dose.minimum, dose.target, dose.maximum, resource.id,
                                   (f"Necesidad {inputs.bottleneck}; sesión estructurada {rank + 1} de "
                                    f"{len(quality_days)}; nivel solicitado {requested_level}, "
-                                   f"recurso elegible {resource.level} para {inputs.focus_distance}/{phase}."))
+                                   f"recurso elegible {resource.level} para {inputs.focus_distance}/{phase}; "
+                                   f"sugerencia Suunto inicial "
+                                   f"{inputs.suggested_speed_level if kind == 'speed' else inputs.suggested_sustained_level}."))
             else:
                 recovery = day_index == (long_day + 1) % 7
                 role = "recovery" if recovery else "easy"

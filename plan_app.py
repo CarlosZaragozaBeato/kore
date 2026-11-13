@@ -3,21 +3,26 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from dataclasses import asdict
 from html import escape
 from io import BytesIO
 from secrets import token_urlsafe
+from time import monotonic
 from urllib.parse import parse_qs
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import ValidationError
+import psycopg
 
 from plan_builder import activate_draft, build_book
 from plan_engine import PlanDraft, PlanInputs, WEEKDAYS, generate
+from training_level import TrainingAssessment, assess_local_history
 
 
-app = FastAPI(title="Kore: generador de planes", version="0.1.0")
+app = FastAPI(title="Kore: generador de planes", version="0.2.0")
 _drafts: dict[str, PlanDraft] = {}
+_assessment_cache: tuple[float, TrainingAssessment] | None = None
 CSS = """<style>body{font:16px system-ui;max-width:1050px;margin:2rem auto;padding:0 1rem;color:#20242a}
 label{display:block;margin:.65rem 0}input,select{font:inherit;padding:.35rem;width:17rem;max-width:100%}
 fieldset{border:1px solid #cbd2d9;border-radius:8px;margin:1rem 0;padding:1rem}
@@ -45,14 +50,57 @@ def select(label: str, name: str, choices: tuple[tuple[str, str], ...], default:
     return f"<label>{escape(label)}<br><select name='{name}'>{options}</select></label>"
 
 
-def form(error: str = "") -> str:
+def current_assessment() -> TrainingAssessment:
+    global _assessment_cache
+    if _assessment_cache is None or monotonic() - _assessment_cache[0] > 300:
+        _assessment_cache = (monotonic(), assess_local_history())
+    return _assessment_cache[1]
+
+
+def assessment_panel(assessment: TrainingAssessment | None, error: str | None = None) -> str:
+    if assessment is None:
+        return (f"<div class='error'>No se pudo leer la evidencia local: {escape(error or 'sin detalle')}. "
+                "Introduce los niveles manualmente.</div>")
+    rows = "".join(
+        f"<tr><td>{escape(title)}</td><td>{suggestion.suggested_level}</td>"
+        f"<td>{escape(suggestion.confidence)}</td><td>{escape(' '.join(suggestion.evidence))}</td></tr>"
+        for title, suggestion in (("Velocidad", assessment.speed),
+                                  ("Ritmo sostenido", assessment.sustained))
+    )
+    return ("<div class='notice'><h2>Sugerencia desde Suunto</h2>"
+            f"<p>Ventana {assessment.from_date}–{assessment.through_date}; "
+            f"{assessment.decoded_running_sessions} carreras decodificadas; última carrera "
+            f"{assessment.latest_run_date or 'sin dato'}.</p>"
+            f"<table><tr><th>Capacidad</th><th>Nivel sugerido</th><th>Confianza</th>"
+            f"<th>Evidencia</th></tr>{rows}</table>"
+            "<p><small>La sugerencia identifica exposición compatible y tamaño de sesión. "
+            "No mide recuperación, respuesta posterior ni capacidad fisiológica. Puedes cambiarla.</small></p></div>")
+
+
+def form(error: str = "", assessment: TrainingAssessment | None = None,
+         assessment_error: str | None = None) -> str:
     today = date.today()
     monday = today + timedelta(days=(7 - today.weekday()) % 7)
     distances = tuple((v, v) for v in ("5k", "10k", "21k", "42k"))
+    current_km = f"{assessment.current_weekly_km:g}" if assessment and assessment.current_weekly_km else ""
+    long_km = f"{assessment.recent_long_run_km:g}" if assessment and assessment.recent_long_run_km else ""
+    speed_level = str(assessment.speed.suggested_level) if assessment else "0"
+    sustained_level = str(assessment.sustained.suggested_level) if assessment else "0"
+    assessment_hidden = (f"<input type='hidden' name='suggested_speed_level' value='{speed_level}'>"
+                         f"<input type='hidden' name='suggested_sustained_level' value='{sustained_level}'>"
+                         f"<input type='hidden' name='speed_suggestion_confidence' value='{assessment.speed.confidence}'>"
+                         f"<input type='hidden' name='sustained_suggestion_confidence' value='{assessment.sustained.confidence}'>"
+                         f"<input type='hidden' name='speed_evidence_summary' value='{escape(' '.join(assessment.speed.evidence), quote=True)}'>"
+                         f"<input type='hidden' name='sustained_evidence_summary' value='{escape(' '.join(assessment.sustained.evidence), quote=True)}'>"
+                         f"<input type='hidden' name='assessment_as_of' value='{assessment.through_date}'>"
+                         f"<input type='hidden' name='assessment_window_days' value='{assessment.window_days}'>"
+                         if assessment else "")
     return ("<h1>Generador de planes Kore</h1><p>Selecciona los parámetros y revisa el borrador "
             "antes de activar un bloque. Los resultados de Suunto solo se insertan en el activo.</p>"
+            + assessment_panel(assessment, assessment_error)
             + (f"<div class='error'>{escape(error)}</div>" if error else "")
-            + "<form method='post' action='/preview'><fieldset><legend>Objetivo y calendario</legend>"
+            + "<form method='post' action='/preview'>" + assessment_hidden
+            + "<fieldset><legend>Objetivo y calendario</legend>"
             + select("Distancia de este bloque", "focus_distance", distances, "10k")
             + select("Objetivo final", "ultimate_distance", distances, "42k")
             + select("Tipo de bloque", "objective", (("development", "Desarrollo sin carrera"), ("race", "Competición")), "development")
@@ -61,9 +109,9 @@ def form(error: str = "") -> str:
             + field("Fecha de competición (si aplica, en la última semana)", "event_date", "", type_="date", required=False)
             + "</fieldset><fieldset><legend>Estado y carga</legend>"
             + select("Necesidad principal", "bottleneck", (("speed", "Velocidad"), ("sustained", "Sostener ritmo alto"), ("balanced", "Equilibrado")), "balanced")
-            + field("Km semanales actuales observados", "current_weekly_km", "", type_="number")
-            + field("Km semanales objetivo", "target_weekly_km", "", type_="number")
-            + field("Tirada larga reciente (km)", "recent_long_run_km", "", type_="number")
+            + field("Km semanales actuales observados", "current_weekly_km", current_km, type_="number")
+            + field("Km semanales objetivo", "target_weekly_km", current_km, type_="number")
+            + field("Tirada larga reciente (km)", "recent_long_run_km", long_km, type_="number")
             + select("Fatiga actual", "fatigue", (("normal", "Normal"), ("elevated", "Elevada")), "normal")
             + "</fieldset><fieldset><legend>Disponibilidad y progresión</legend>"
             + "<p>Días de entrenamiento</p>"
@@ -75,8 +123,8 @@ def form(error: str = "") -> str:
                      tuple((str(day), name) for day, name in enumerate(WEEKDAYS)), "6")
             + select("Sesiones estructuradas por semana, además de la tirada",
                      "quality_sessions_per_week", (("0", "Ninguna"), ("1", "Una"), ("2", "Dos")), "2")
-            + field("Nivel inicial de series (0=1 min, 1=3 min, 2=1 km, 3=1,6 km)", "speed_entry_level", "1", type_="number")
-            + field("Nivel inicial sostenido (0=6 min, 1=10 min, 2=15 min, 3=continuo)", "sustained_entry_level", "1", type_="number")
+            + field("Nivel inicial de series (0=1 min, 1=3 min, 2=1 km, 3=1,6 km)", "speed_entry_level", speed_level, type_="number")
+            + field("Nivel inicial sostenido (0=6 min, 1=10 min, 2=15 min, 3=continuo)", "sustained_entry_level", sustained_level, type_="number")
             + field("Aumento máximo elegido de km/semana", "max_weekly_increase_km", "4", type_="number")
             + field("Aumento máximo elegido de tirada larga (km/semana)", "max_long_run_increase_km", "1", type_="number")
             + field("Cada cuántas semanas reducir carga", "deload_every", "4", type_="number")
@@ -87,7 +135,16 @@ def form(error: str = "") -> str:
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return page(form())
+    try:
+        assessment = current_assessment()
+        return page(form(assessment=assessment))
+    except (ValueError, OSError, psycopg.Error) as exc:
+        return page(form(assessment_error=type(exc).__name__))
+
+
+@app.get("/api/assessment")
+def assessment_api():
+    return asdict(current_assessment())
 
 
 @app.post("/preview", response_class=HTMLResponse)
@@ -101,7 +158,11 @@ async def preview(request: Request):
         inputs = PlanInputs.model_validate(data)
         draft = generate(inputs)
     except (ValidationError, ValueError) as exc:
-        return page(form(str(exc)))
+        try:
+            assessment = current_assessment()
+            return page(form(str(exc), assessment=assessment))
+        except (ValueError, OSError, psycopg.Error) as assessment_exc:
+            return page(form(str(exc), assessment_error=type(assessment_exc).__name__))
     token = token_urlsafe(24)
     _drafts[token] = draft
     if len(_drafts) > 20:
@@ -115,6 +176,10 @@ async def preview(request: Request):
     notes = "".join(f"<li>{escape(note)}</li>" for note in draft.notes)
     body = (f"<h1>Borrador: {escape(inputs.focus_distance)} hacia {escape(inputs.ultimate_distance)}</h1>"
             f"<p>Inicio {inputs.start_date}; {inputs.weeks} semanas; {len(inputs.training_days)} días de entrenamiento.</p>"
+            f"<p>Niveles elegidos: velocidad {inputs.speed_entry_level} "
+            f"(Suunto sugirió {inputs.suggested_speed_level if inputs.suggested_speed_level is not None else 'sin dato'}); "
+            f"sostenido {inputs.sustained_entry_level} "
+            f"(Suunto sugirió {inputs.suggested_sustained_level if inputs.suggested_sustained_level is not None else 'sin dato'}).</p>"
             f"<ul>{notes}</ul><h2>Volumen semanal</h2><table><tr><th>Semana</th><th>Fase</th><th>Km</th></tr>{week_rows}</table>"
             f"<h2>Primeras dos semanas</h2><table><tr><th>Semana</th><th>Fecha</th><th>Día</th>"
             f"<th>Sesión</th><th>Km</th><th>Dosis</th></tr>{day_rows}</table>"

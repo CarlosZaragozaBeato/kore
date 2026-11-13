@@ -23,4 +23,6 @@ El libro contiene cuatro hojas:
 - **Resumen diario:** todos los días del periodo, incluso los que no tienen entrenamientos.
 - **Vueltas:** laps de los FIT vigentes decodificados.
 
+La hoja de entrenamientos muestra también las etiquetas `userTags` y el desnivel acumulado recibidos de Suunto. Para crear planes por bloques y asociar entrenamientos, consulta [PLANES.md](PLANES.md).
+
 Si falta un FIT o está pendiente de decodificar, el entrenamiento sigue visible y sus métricas derivadas quedan vacías. La exportación lee la base local; no llama a Suunto ni modifica datos. No incluye muestras individuales ni coordenadas. El Excel contiene información privada de entrenamiento y debe guardarse en un lugar privado.

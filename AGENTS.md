@@ -30,3 +30,4 @@ El backend futuro no debe implementarse en Java. El servicio Quarkus actual es c
 - `infra/backup_local.py`: copia privada de la base y originales, y prueba de restauración aislada. Las copias viven en `data/backups/`, fuera de Git; no moverlas al repositorio.
 - `kore_api/`: API local de solo lectura y contrato OpenAPI para visualización y agentes. El contexto del agente incluye vigencia, cobertura, periodos parciales y desglose por deporte; no convierte estos datos en recomendaciones. Mantenerla ligada a localhost mientras no tenga autenticación.
 - `export_excel.py` y `EXPORT.md`: exportación local de semanas o rangos a `.xlsx`. Los libros contienen datos personales y van a `data/exports/`, fuera de Git.
+- `plan_excel.py`, `analysis_training.py` y `PLANES.md`: plantillas de planes, enlace de entrenamientos y análisis histórico. Los objetivos concretos, libros y contexto del agente viven bajo `data/`, fuera de Git. No versionar estos datos.

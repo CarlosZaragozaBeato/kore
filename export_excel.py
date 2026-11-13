@@ -73,7 +73,10 @@ def query_data(first: date, last: date) -> tuple[list[dict], list[dict]]:
     start_ms, end_ms = millisecond_bounds(first, last)
     with psycopg.connect(database_url(), row_factory=dict_row, connect_timeout=10,
                          options="-c default_transaction_read_only=on") as db:
+        db.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         workouts = db.execute("""SELECT w.workout_key, w.start_time_ms, w.fit_status,
+            w.raw_payload->'userTags' AS user_tags,
+            (w.raw_payload->>'totalAscent')::float8 AS ascent_meters,
             s.sport, s.timer_seconds, s.distance_meters, s.avg_heart_rate,
             s.max_heart_rate, s.avg_power, s.training_stress_score,
             CASE WHEN s.workout_key IS NOT NULL THEN w.fit_record_count END AS record_count
@@ -148,8 +151,8 @@ def build_workbook(first: date, last: date, workouts: list[dict], laps: list[dic
     add_header(sessions, (
         "Fecha", "Inicio local", "Deporte", "Duración (min)", "Distancia (km)",
         "FC media", "FC máxima", "Potencia media (W)", "TSS", "Estado FIT",
-        "Muestras", "Clave Suunto",
-    ), (16, 22, 18, 20, 19, 14, 14, 22, 12, 18, 13, 30))
+        "Muestras", "Clave Suunto", "Etiquetas Suunto", "Desnivel + (m)",
+    ), (16, 22, 18, 20, 19, 14, 14, 22, 12, 18, 13, 30, 35, 19))
     daily = defaultdict(lambda: {"sessions": 0, "duration": 0.0, "distance": 0.0,
                                  "tss": 0.0, "tss_sessions": 0, "fit_missing": 0})
     for row in workouts:
@@ -167,6 +170,7 @@ def build_workbook(first: date, last: date, workouts: list[dict], laps: list[dic
             rounded(row["avg_heart_rate"]), rounded(row["max_heart_rate"]),
             rounded(row["avg_power"]), rounded(row["training_stress_score"]),
             fit_state, row["record_count"], row["workout_key"],
+            ", ".join(row.get("user_tags") or []), rounded(row.get("ascent_meters")),
         ))
         for cell in sessions[sessions.max_row]:
             safe_text(cell)

@@ -25,7 +25,8 @@ class ExportExcelTest(unittest.TestCase):
             {"workout_key": "a" * 24, "start_time_ms": 1794214800000,
              "fit_status": "ok", "sport": "running", "timer_seconds": 3600,
              "distance_meters": 10000, "avg_heart_rate": 145, "max_heart_rate": 170,
-             "avg_power": 250, "training_stress_score": 80, "record_count": 100},
+             "avg_power": 250, "training_stress_score": 80, "record_count": 100,
+             "user_tags": ["=1+1"]},
             {"workout_key": "b" * 24, "start_time_ms": 1794301200000,
              "fit_status": None, "sport": None, "timer_seconds": None,
              "distance_meters": None, "avg_heart_rate": None, "max_heart_rate": None,
@@ -45,6 +46,7 @@ class ExportExcelTest(unittest.TestCase):
             daily = list(restored["Resumen diario"].values)
             self.assertEqual([row[1] for row in daily[1:]], [1, 1, 0])
             self.assertEqual([row[6] for row in daily[1:]], [0, 1, 0])
+            self.assertEqual(load_workbook(path)["Entrenamientos"]["M2"].data_type, "s")
 
     def test_date_bounds_follow_madrid_clock_change(self):
         first, end = millisecond_bounds(date(2026, 3, 29), date(2026, 3, 29))

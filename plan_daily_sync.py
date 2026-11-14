@@ -215,19 +215,24 @@ def update_book(book: Workbook, workouts: list[dict], *, now: datetime | None = 
     return book
 
 
-def refresh_active() -> int:
+def refresh_active(*, now: datetime | None = None) -> int:
     """Refresh the confirmed active workbook from the local database."""
     if not ACTIVE.exists():
         raise FileNotFoundError("No hay un bloque activo")
     book = load_workbook(ACTIVE)
+    current = (now or datetime.now(timezone.utc)).astimezone(MADRID)
     try:
         start, end, _ = validate(book)
         workouts = query_workouts(start, end)
-        update_book(book, workouts)
+        update_book(book, workouts, now=current)
+        finalized = book["Configuración"]["B8"].value == "Finalizado"
         save_with_backup(book, ACTIVE)
-        return len(workouts)
     finally:
         book.close()
+    if finalized:
+        from plan_lifecycle import complete_active
+        complete_active(current, reason="Fin de calendario", allow_early=False)
+    return len(workouts)
 
 
 if __name__ == "__main__":

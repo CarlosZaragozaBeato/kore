@@ -7,6 +7,7 @@
 - **Consulta:** `kore_api` expone información de solo lectura en localhost.
 - **Planificación:** `plan_engine` combina parámetros explícitos con los recursos de `resources/session_catalog.json`. No usa un agente para construir el bloque.
 - **Libro activo:** `plan_builder` crea el Excel, `plan_workbook` define su contrato y `plan_daily_sync` incorpora resultados Suunto.
+- **Ciclo de vida:** `plan_lifecycle` mueve bloques vencidos a `completed/` y bloques retirados a `discarded/`; retirar nunca borra el archivo.
 - **Respuesta al entrenamiento:** `plan_feedback`, `plan_adaptation` y `plan_adjustment` separan observación, recomendación, vista previa y confirmación.
 
 ## Límites de escritura
@@ -18,6 +19,8 @@
 | Sincronizar plan | Solo columnas de resultados, resumen semanal y progreso temporal. |
 | Guardar feedback | Hoja privada `Feedback`, con copia previa. |
 | Confirmar adaptación | Solo fechas futuras y dosis/recursos mostrados en la comparación; nunca kilómetros. |
+| Finalizar bloque | Marca el libro como finalizado, añade motivo y fecha, lo guarda en `completed/` y elimina únicamente el puntero activo. |
+| Retirar bloque | Movimiento atómico del archivo intacto a `discarded/`, tras confirmación con la etiqueta exacta. |
 
 ## Datos privados
 
@@ -25,6 +28,8 @@
 - `data/raw/`: respuestas y FIT originales.
 - `data/plans/active/`: único bloque operativo.
 - `data/plans/archive/`: copias anteriores creadas antes de cada escritura.
+- `data/plans/completed/`: bloques finalizados, incluido el cierre automático posterior a la fecha final.
+- `data/plans/discarded/`: bloques retirados de la actividad pero conservados para recuperación.
 - `data/plans/legacy/`: demostraciones y plantillas anteriores, fuera del flujo vigente.
 - `data/analysis/` y `data/exports/`: resultados personales derivados.
 - `data/backups/`: copias verificadas; no sustituye una copia en otro disco.

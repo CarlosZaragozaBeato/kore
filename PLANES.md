@@ -30,3 +30,14 @@ Si la base ya está sincronizada:
 La actualización es idempotente: reconstruye resultados desde claves Suunto únicas, agrupa varias carreras del día y conserva las decisiones del plan. Un FIT pendiente o métricas incompletas quedan visibles en vez de producir totales parciales.
 
 Los libros antiguos de demostración se conservan localmente bajo `data/plans/legacy/`; no participan en la aplicación ni en las pruebas.
+
+## Finalizar o retirar
+
+`http://127.0.0.1:8092/plans` muestra el activo y los archivos finalizados o retirados.
+
+- Al ejecutar la primera sincronización posterior a la fecha final, Kore marca el libro como finalizado y lo mueve automáticamente a `data/plans/completed/`.
+- **Finalizar bloque** permite cerrarlo manualmente antes, pero exige escribir su etiqueta exacta.
+- **Retirar bloque activo** equivale a eliminarlo del flujo operativo: exige la misma confirmación y mueve el Excel intacto a `data/plans/discarded/`.
+- Ninguna de estas acciones borra los archivos finalizados o retirados. El nombre conserva la etiqueta y la fecha del movimiento.
+
+Después del movimiento deja de existir un activo y puede activarse otro borrador. `archive/` continúa reservado para copias previas a escrituras; no sustituye a `completed/` ni `discarded/`.

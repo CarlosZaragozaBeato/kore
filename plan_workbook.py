@@ -16,6 +16,8 @@ from openpyxl.styles import Alignment, Font, PatternFill
 ROOT = Path(__file__).resolve().parent
 PLANS = ROOT / "data" / "plans"
 ACTIVE = PLANS / "active" / "plan-activo.xlsx"
+COMPLETED = PLANS / "completed"
+DISCARDED = PLANS / "discarded"
 
 DAILY_HEADERS = (
     "Semana", "Bloque", "Fecha", "Día", "Sesión planificada", "Tipo",

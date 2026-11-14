@@ -21,14 +21,15 @@ from plan_builder import activate_draft, build_book
 from plan_adaptation import suggest_adaptation
 from plan_adjustment import AdjustmentProposal, apply_adjustment, build_adjustment_proposal
 from plan_engine import PlanDraft, PlanInputs, WEEKDAYS, generate
-from plan_workbook import ACTIVE, save_with_backup
+from plan_lifecycle import complete_active, discard_active, inspect_active, stored_books
+from plan_workbook import ACTIVE, COMPLETED, DISCARDED, save_with_backup
 from plan_feedback import FeedbackInput, feedback_entries, upsert_feedback
 from plan_daily_sync import validate
 from planning_profiles import load_profiles
 from training_level import MADRID, TrainingAssessment, assess_local_history
 
 
-app = FastAPI(title="Kore: generador de planes", version="0.5.0")
+app = FastAPI(title="Kore: generador de planes", version="0.6.0")
 _drafts: dict[str, PlanDraft] = {}
 _adjustments: dict[str, tuple[str, AdjustmentProposal]] = {}
 _assessment_cache: tuple[float, TrainingAssessment] | None = None
@@ -106,7 +107,8 @@ def form(error: str = "", assessment: TrainingAssessment | None = None,
                          f"<input type='hidden' name='assessment_as_of' value='{assessment.through_date}'>"
                          f"<input type='hidden' name='assessment_window_days' value='{assessment.window_days}'>"
                          if assessment else "")
-    return ("<h1>Generador de planes Kore</h1><p><a href='/feedback'>Registrar sensaciones</a> · "
+    return ("<h1>Generador de planes Kore</h1><p><a href='/plans'>Gestionar bloques</a> · "
+            "<a href='/feedback'>Registrar sensaciones</a> · "
             "<a href='/adaptation'>Revisar adaptación semanal</a></p>"
             "<p>Selecciona los parámetros y revisa el borrador "
             "antes de activar un bloque. Los resultados de Suunto solo se insertan en el activo.</p>"
@@ -168,6 +170,109 @@ def home():
 @app.get("/api/assessment")
 def assessment_api():
     return asdict(current_assessment())
+
+
+def _stored_rows(paths) -> str:
+    if not paths:
+        return "<tr><td>—</td></tr>"
+    return "".join(f"<tr><td>{escape(path.name)}</td></tr>" for path in paths)
+
+
+def plans_view(message: str = "") -> str:
+    active = inspect_active()
+    if active is None:
+        active_html = "<div class='notice'>No hay un bloque activo.</div>"
+    else:
+        active_html = (
+            f"<p><strong>{escape(active.tag)}</strong> · {active.start}–{active.end} · "
+            f"{escape(active.state)}</p>"
+            "<p><a class='button' href='/plans/finish'>Finalizar bloque</a> "
+            "<a class='button' href='/plans/discard'>Retirar bloque activo</a></p>"
+        )
+    return (
+        "<h1>Gestión de bloques</h1>"
+        + (f"<div class='notice'>{escape(message)}</div>" if message else "")
+        + "<h2>Activo</h2>" + active_html
+        + "<h2>Finalizados</h2><table><tr><th>Archivo</th></tr>"
+        + _stored_rows(stored_books(COMPLETED)) + "</table>"
+        + "<h2>Retirados</h2><table><tr><th>Archivo</th></tr>"
+        + _stored_rows(stored_books(DISCARDED)) + "</table>"
+        + "<p>Retirar nunca borra el Excel: lo mueve a la carpeta privada de descartados.</p>"
+        + "<p><a href='/'>Volver</a></p>"
+    )
+
+
+@app.get("/plans", response_class=HTMLResponse)
+def plans_page():
+    try:
+        return page(plans_view())
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Gestión de bloques</h1><div class='error'>{escape(str(exc))}</div>")
+
+
+def lifecycle_confirmation(action: str) -> str:
+    active = inspect_active()
+    if active is None:
+        return "<h1>Gestión de bloques</h1><div class='error'>No hay un bloque activo.</div>"
+    finishing = action == "finish"
+    title = "Finalizar bloque" if finishing else "Retirar bloque activo"
+    explanation = (
+        "El Excel se marcará como finalizado y se moverá a la carpeta de bloques completados."
+        if finishing else
+        "El Excel se moverá intacto a la carpeta de descartados. No se borrará."
+    )
+    return (
+        f"<h1>{title}</h1><p>{explanation}</p>"
+        f"<p>Para confirmar, escribe <code>{escape(active.tag)}</code>.</p>"
+        f"<form method='post' action='/plans/{action}'>"
+        + field("Etiqueta exacta", "confirmation", "")
+        + f"<button>{title}</button></form><p><a href='/plans'>Cancelar</a></p>"
+    )
+
+
+@app.get("/plans/finish", response_class=HTMLResponse)
+def finish_confirmation():
+    return page(lifecycle_confirmation("finish"))
+
+
+@app.get("/plans/discard", response_class=HTMLResponse)
+def discard_confirmation():
+    return page(lifecycle_confirmation("discard"))
+
+
+async def _confirmed_active(request: Request):
+    raw = parse_qs((await request.body()).decode("utf-8"), keep_blank_values=True)
+    confirmation = raw.get("confirmation", [""])[-1].strip()
+    active = inspect_active()
+    if active is None:
+        raise FileNotFoundError("No hay un bloque activo")
+    if confirmation != active.tag:
+        raise ValueError("La etiqueta de confirmación no coincide con el bloque activo")
+    return active
+
+
+@app.post("/plans/finish", response_class=HTMLResponse)
+async def finish_plan(request: Request):
+    try:
+        active = await _confirmed_active(request)
+        now = datetime.now(timezone.utc).astimezone(MADRID)
+        complete_active(now, reason="Cierre manual confirmado", allow_early=True)
+        return page(plans_view(f"Bloque {active.tag} finalizado y movido."))
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Bloque no finalizado</h1><div class='error'>{escape(str(exc))}</div>"
+                    "<p><a href='/plans'>Volver</a></p>")
+
+
+@app.post("/plans/discard", response_class=HTMLResponse)
+async def discard_plan(request: Request):
+    try:
+        active = await _confirmed_active(request)
+        now = datetime.now(timezone.utc).astimezone(MADRID)
+        discard_active(now)
+        return page(plans_view(f"Bloque {active.tag} retirado sin borrar el archivo."))
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Bloque no retirado</h1><div class='error'>{escape(str(exc))}</div>"
+                    "<p><a href='/plans'>Volver</a></p>")
 
 
 def _optional_int(raw: dict[str, list[str]], key: str) -> int | None:

@@ -45,6 +45,7 @@ Para refrescar únicamente el plan desde la base ya sincronizada:
 | `plan_app.py` | Interfaz local de generación, feedback y adaptación. |
 | `plan_workbook.py` | Esquema y guardado atómico del Excel. |
 | `plan_daily_sync.py` | Enlace Suunto–plan por etiqueta y fecha. |
+| `plan_lifecycle.py` | Finalización automática y retirada recuperable de bloques. |
 | `infra/` | PostgreSQL local, copias verificadas y unidades `systemd --user`. |
 | `tests/` | Pruebas sin datos personales. |
 | `worklog/` | Historial técnico versionado. |

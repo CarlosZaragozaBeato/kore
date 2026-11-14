@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from openpyxl import load_workbook
 
 from plan_app import app
+from plan_lifecycle import ActiveBlock
 from training_level import LevelSuggestion, TrainingAssessment
 
 
@@ -74,6 +75,25 @@ class PlanAppTest(unittest.TestCase):
         self.assertEqual(rules["long_run_target_km"], "20.0")
         self.assertEqual(book["Plan diario"].max_row, 57)
         book.close()
+
+    def test_plan_management_requires_the_exact_tag(self):
+        client = TestClient(app)
+        active = ActiveBlock("kore_10k_20261116", date(2026, 11, 16),
+                             date(2027, 1, 10), "Activo")
+        with patch("plan_app.inspect_active", return_value=active), \
+             patch("plan_app.stored_books", return_value=()), \
+             patch("plan_app.discard_active") as discard:
+            page = client.get("/plans")
+            confirmation = client.get("/plans/discard")
+            rejected = client.post("/plans/discard", data={"confirmation": "incorrecta"})
+            accepted = client.post("/plans/discard",
+                                   data={"confirmation": active.tag})
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(active.tag, page.text)
+        self.assertIn("No se borrará", confirmation.text)
+        self.assertIn("no coincide", rejected.text)
+        self.assertIn("retirado sin borrar", accepted.text)
+        discard.assert_called_once()
 
 
 if __name__ == "__main__":

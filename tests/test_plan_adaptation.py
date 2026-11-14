@@ -4,6 +4,7 @@ import unittest
 from datetime import date, datetime, timedelta, timezone
 
 from plan_adaptation import suggest_adaptation
+from plan_adjustment import apply_adjustment, build_adjustment_proposal
 from plan_builder import build_book
 from plan_engine import PlanInputs, generate
 from plan_feedback import FeedbackInput, feedback_entries, upsert_feedback
@@ -85,6 +86,73 @@ class PlanAdaptationTest(unittest.TestCase):
         self.assertEqual(suggestion.action, "insufficient_data")
         self.assertIsNone(suggestion.target_week)
         self.assertIn("finalizado", " ".join(suggestion.reasons))
+
+    def test_reduction_preview_and_apply_only_change_future_dose(self):
+        workbook = book()
+        fill_actuals(workbook)
+        add_feedback(workbook, START, soreness=8)
+        add_feedback(workbook, START + timedelta(days=1), soreness=4)
+        suggestion = suggest_adaptation(workbook, date(2026, 11, 20))
+        proposal = build_adjustment_proposal(workbook, suggestion, date(2026, 11, 20))
+        self.assertGreater(len(proposal.changes), 0)
+        self.assertTrue(all(change.day > date(2026, 11, 20) for change in proposal.changes))
+        before_first_week = tuple(workbook["Plan diario"].iter_rows(
+            min_row=2, max_row=8, values_only=True))
+
+        apply_adjustment(workbook, proposal, datetime(2026, 11, 20, 12,
+                                                       tzinfo=timezone.utc))
+
+        self.assertEqual(tuple(workbook["Plan diario"].iter_rows(
+            min_row=2, max_row=8, values_only=True)), before_first_week)
+        dose_change = next(change for change in proposal.changes
+                           if change.field == "Dosis prevista")
+        self.assertEqual(workbook[dose_change.sheet].cell(
+            dose_change.row, dose_change.column).value, dose_change.after)
+        self.assertIn("Adaptaciones", workbook.sheetnames)
+        self.assertEqual(workbook["Adaptaciones"].max_row, len(proposal.changes) + 1)
+
+    def test_stale_preview_is_rejected(self):
+        workbook = book()
+        fill_actuals(workbook)
+        add_feedback(workbook, START, soreness=8)
+        add_feedback(workbook, START + timedelta(days=1), soreness=4)
+        proposal = build_adjustment_proposal(
+            workbook, suggest_adaptation(workbook, date(2026, 11, 20)),
+            date(2026, 11, 20),
+        )
+        changed = proposal.changes[0]
+        workbook[changed.sheet].cell(changed.row, changed.column).value = "cambio externo"
+        with self.assertRaisesRegex(ValueError, "cambió tras la vista previa"):
+            apply_adjustment(workbook, proposal, datetime(2026, 11, 20, 12,
+                                                           tzinfo=timezone.utc))
+
+    def test_hold_copies_previous_level_without_changing_kilometres(self):
+        workbook = book()
+        suggestion = suggest_adaptation(workbook, date(2026, 11, 20))
+        hold = suggestion.__class__(
+            "hold", 4, 5, "medium", 3, 3, 2, 1.0, 6.0, 4, 4, 2,
+            ("Prueba de mantenimiento",), "Mantener",
+        )
+        proposal = build_adjustment_proposal(workbook, hold, date(2026, 12, 10))
+        self.assertGreater(len(proposal.changes), 0)
+        self.assertNotIn(7, {change.column for change in proposal.changes
+                             if change.sheet == "Plan diario"})
+        week_five_km = [workbook["Plan diario"].cell(row, 7).value
+                        for row in range(30, 37)]
+        apply_adjustment(workbook, proposal, datetime(2026, 12, 10, 12,
+                                                       tzinfo=timezone.utc))
+        self.assertEqual([workbook["Plan diario"].cell(row, 7).value
+                          for row in range(30, 37)], week_five_km)
+
+    def test_progression_proposal_never_adds_changes(self):
+        workbook = book()
+        fill_actuals(workbook)
+        for offset in (0, 1, 2):
+            add_feedback(workbook, START + timedelta(days=offset))
+        suggestion = suggest_adaptation(workbook, date(2026, 11, 20))
+        proposal = build_adjustment_proposal(workbook, suggestion, date(2026, 11, 20))
+        self.assertEqual(proposal.action, "progress")
+        self.assertEqual(proposal.changes, ())
 
 
 if __name__ == "__main__":

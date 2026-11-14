@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 from dataclasses import asdict
+from hashlib import sha256
 from html import escape
 from io import BytesIO
 from secrets import token_urlsafe
@@ -18,6 +19,7 @@ import psycopg
 
 from plan_builder import activate_draft, build_book
 from plan_adaptation import suggest_adaptation
+from plan_adjustment import AdjustmentProposal, apply_adjustment, build_adjustment_proposal
 from plan_engine import PlanDraft, PlanInputs, WEEKDAYS, generate
 from plan_excel import ACTIVE, save_with_backup
 from plan_feedback import FeedbackInput, feedback_entries, upsert_feedback
@@ -25,8 +27,9 @@ from plan_daily_sync import validate
 from training_level import MADRID, TrainingAssessment, assess_local_history
 
 
-app = FastAPI(title="Kore: generador de planes", version="0.3.0")
+app = FastAPI(title="Kore: generador de planes", version="0.4.0")
 _drafts: dict[str, PlanDraft] = {}
+_adjustments: dict[str, tuple[str, AdjustmentProposal]] = {}
 _assessment_cache: tuple[float, TrainingAssessment] | None = None
 CSS = """<style>body{font:16px system-ui;max-width:1050px;margin:2rem auto;padding:0 1rem;color:#20242a}
 label{display:block;margin:.65rem 0}input,select{font:inherit;padding:.35rem;width:17rem;max-width:100%}
@@ -246,6 +249,9 @@ def adaptation_page():
     labels = {"insufficient_data": "Datos insuficientes", "reduce": "Reducir",
               "hold": "Mantener", "progress": "Permitir progresión prevista"}
     reasons = "".join(f"<li>{escape(reason)}</li>" for reason in suggestion.reasons)
+    preview = ("<form method='post' action='/adaptation/preview'>"
+               "<button>Preparar comparación de cambios</button></form>"
+               if suggestion.action in ("reduce", "hold") and suggestion.target_week is not None else "")
     return page(
         f"<h1>Adaptación semanal: {labels[suggestion.action]}</h1>"
         f"<p>Semana evaluada: {suggestion.evaluated_week or 'ninguna'}; "
@@ -259,9 +265,80 @@ def adaptation_page():
         f"<td>{suggestion.minimum_recovery if suggestion.minimum_recovery is not None else ''}</td>"
         f"<td>{suggestion.maximum_soreness_pain if suggestion.maximum_soreness_pain is not None else ''}</td></tr></table>"
         f"<ul>{reasons}</ul><p>{escape(suggestion.proposed_effect)}</p>"
-        "<p>Esta pantalla propone una acción y no modifica el plan.</p>"
+        "<p>Esta pantalla propone una acción y no modifica el plan.</p>" + preview +
         "<p><a href='/feedback'>Registrar sensaciones</a> · <a href='/'>Volver</a></p>"
     )
+
+
+@app.post("/adaptation/preview", response_class=HTMLResponse)
+def adaptation_preview():
+    if not ACTIVE.exists():
+        return page("<h1>Propuesta de adaptación</h1><div class='error'>No hay bloque activo.</div>")
+    try:
+        fingerprint = sha256(ACTIVE.read_bytes()).hexdigest()
+        book = load_workbook(ACTIVE, read_only=True, data_only=True)
+        try:
+            today = datetime.now(timezone.utc).astimezone(MADRID).date()
+            suggestion = suggest_adaptation(book, today)
+            proposal = build_adjustment_proposal(book, suggestion, today)
+        finally:
+            book.close()
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Propuesta de adaptación</h1><div class='error'>{escape(str(exc))}</div>"
+                    "<p><a href='/adaptation'>Volver</a></p>")
+    rows = "".join(
+        f"<tr><td>{change.day}</td><td>{escape(change.field)}</td>"
+        f"<td>{escape(str(change.before or '—'))}</td><td>{escape(str(change.after or '—'))}</td></tr>"
+        for change in proposal.changes
+    )
+    confirmation = ""
+    if proposal.changes:
+        token = token_urlsafe(24)
+        _adjustments[token] = (fingerprint, proposal)
+        if len(_adjustments) > 20:
+            _adjustments.pop(next(iter(_adjustments)))
+        confirmation = (f"<form method='post' action='/adaptation/apply/{token}'>"
+                        "<button>Confirmar y aplicar estos cambios</button></form>"
+                        "<p>La confirmación archivará una copia privada del Excel anterior.</p>")
+    else:
+        confirmation = "<div class='notice'>No hay cambios automáticos aplicables.</div>"
+    return page(
+        f"<h1>Comparación antes de adaptar la semana {proposal.target_week}</h1>"
+        f"<p>{escape(proposal.summary)}</p>"
+        "<p>Los kilómetros y todos los días anteriores permanecen intactos.</p>"
+        "<table><tr><th>Fecha</th><th>Campo</th><th>Antes</th><th>Después</th></tr>"
+        f"{rows}</table>{confirmation}<p><a href='/adaptation'>Cancelar</a></p>"
+    )
+
+
+@app.post("/adaptation/apply/{token}", response_class=HTMLResponse)
+def adaptation_apply(token: str):
+    cached = _adjustments.get(token)
+    if cached is None:
+        return page("<h1>Adaptación no aplicada</h1><div class='error'>La propuesta ha caducado.</div>"
+                    "<p><a href='/adaptation'>Volver a evaluar</a></p>")
+    fingerprint, proposal = cached
+    try:
+        if sha256(ACTIVE.read_bytes()).hexdigest() != fingerprint:
+            raise ValueError("El plan cambió después de la vista previa; vuelve a evaluarlo")
+        book = load_workbook(ACTIVE)
+        try:
+            now = datetime.now(timezone.utc).astimezone(MADRID)
+            current = suggest_adaptation(book, now.date())
+            if (current.action, current.target_week) != (proposal.action, proposal.target_week):
+                raise ValueError("La recomendación cambió después de la vista previa; vuelve a evaluarla")
+            apply_adjustment(book, proposal, now)
+            save_with_backup(book, ACTIVE)
+        finally:
+            book.close()
+    except (ValueError, OSError, KeyError) as exc:
+        return page(f"<h1>Adaptación no aplicada</h1><div class='error'>{escape(str(exc))}</div>"
+                    "<p><a href='/adaptation'>Volver a evaluar</a></p>")
+    del _adjustments[token]
+    return page(f"<h1>Adaptación aplicada</h1><p>Semana {proposal.target_week}: "
+                f"{len(proposal.changes)} cambios guardados y auditados.</p>"
+                "<p>Los días anteriores y los kilómetros previstos no se han modificado.</p>"
+                "<p><a href='/adaptation'>Revisar estado</a> · <a href='/'>Inicio</a></p>")
 
 
 @app.post("/preview", response_class=HTMLResponse)

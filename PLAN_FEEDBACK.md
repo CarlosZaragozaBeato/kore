@@ -21,10 +21,18 @@ Los datos se almacenan en la hoja `Feedback` del libro activo, dentro de `data/`
 - Permite la **progresión ya prevista** solo con tres días de feedback, kilómetros comparables entre el 90 % y el 110 % del plan, RPE medio de 7 o menos, recuperación mínima de 4/5 y molestias máximas de 3/10.
 - En los demás casos propone **mantener**.
 
-Estos umbrales son reglas conservadoras iniciales del producto, no límites clínicos ni una prescripción universal. La propuesta muestra métricas, motivos y confianza; no altera sesiones ni kilómetros. Una molestia importante o persistente requiere valoración profesional y no debe resolverse solo con esta regla.
+Estos umbrales son reglas conservadoras iniciales del producto, no límites clínicos ni una prescripción universal. La evaluación muestra métricas, motivos y confianza; por sí sola no altera sesiones ni kilómetros. Una molestia importante o persistente requiere valoración profesional y no debe resolverse solo con esta regla.
 
 El uso conjunto de carga externa e información subjetiva sigue el principio de individualizar el entrenamiento según recuperación y estado observado. Referencias de contexto: [entrenamiento individualizado según recuperación y estado](https://pubmed.ncbi.nlm.nih.gov/35975912/) y [RPE de sesión combinado con volumen](https://pubmed.ncbi.nlm.nih.gov/33064812/).
 
-## Siguiente evolución
+## Vista previa y confirmación
 
-La aplicación podrá preparar una copia de las semanas futuras con la dosis mínima, el nivel actual o la progresión prevista. Antes de sustituir el activo deberá mostrar la comparación, exigir confirmación y conservar intactos los días pasados.
+Cuando la acción sea reducir o mantener, **Preparar comparación de cambios** genera un antes/después de la semana objetivo:
+
+- **Reducir** cambia únicamente la primera sesión estructurada futura a la dosis mínima que ya existe en su recurso.
+- **Mantener** reutiliza en las sesiones estructuradas el recurso y las dosis del nivel anterior.
+- **Permitir progresión** no escribe nada: conserva exactamente la progresión que ya figuraba en el bloque.
+
+La propuesta no cambia kilómetros. Solo se guarda al pulsar **Confirmar y aplicar estos cambios**. En ese momento Kore comprueba que el Excel y la recomendación no hayan cambiado desde la vista previa, rechaza fechas actuales o pasadas, archiva el libro anterior y registra cada celda modificada en la hoja privada `Adaptaciones`.
+
+El siguiente paso es incorporar la misma comparación al diseño de un bloque nuevo y estudiar por separado cambios de volumen; los kilómetros no deben derivarse automáticamente de estas primeras reglas subjetivas.

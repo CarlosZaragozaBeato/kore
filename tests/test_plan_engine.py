@@ -55,6 +55,33 @@ class PlanEngineTest(unittest.TestCase):
         no_quality = generate(inputs(quality_sessions_per_week=0))
         self.assertFalse(any(s.role in ("speed", "sustained") for s in no_quality.sessions))
 
+    def test_explicit_quality_days_and_focused_mix_are_respected(self):
+        draft = generate(inputs(quality_days=[1, 3], quality_mix="focused",
+                                bottleneck="speed"))
+        quality = [session for session in draft.sessions[:7]
+                   if session.role in ("speed", "sustained")]
+        self.assertEqual([session.day.weekday() for session in quality], [1, 3])
+        self.assertEqual([session.role for session in quality], ["speed", "speed"])
+        with self.assertRaises(ValidationError):
+            inputs(quality_days=[1, 2])
+
+    def test_progression_cadence_changes_when_the_dose_advances(self):
+        default = generate(inputs())
+        faster = generate(inputs(dose_progression_every=2))
+        default_week_three = next(session for session in default.sessions[14:21]
+                                  if session.role == "speed")
+        faster_week_three = next(session for session in faster.sessions[14:21]
+                                 if session.role == "speed")
+        self.assertEqual(default_week_three.name, "Series de 1 km")
+        self.assertEqual(faster_week_three.name, "Series largas")
+
+    def test_deload_reduces_long_run_and_target_caps_growth(self):
+        draft = generate(inputs(recent_long_run_km=18, long_run_target_km=19,
+                                deload_long_run_fraction=.75))
+        long_runs = [session.km for session in draft.sessions if session.role == "long"]
+        self.assertEqual(long_runs[:5], [18, 19, 19, 14.2, 19])
+        self.assertTrue(any("referencia personal" in note.lower() for note in draft.notes))
+
     def test_supported_distances_bottlenecks_and_entry_levels_generate(self):
         for distance in ("5k", "10k", "21k", "42k"):
             for bottleneck in ("speed", "sustained", "balanced"):

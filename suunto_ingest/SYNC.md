@@ -78,7 +78,7 @@ El comando espera a que no haya una operación Suunto en curso y crea `database.
 .venv/bin/python -m infra.backup_local verify data/backups/kore-<fecha>-<id>
 ```
 
-La verificación comprueba los hashes, restaura la base en un clúster PostgreSQL temporal, compara los recuentos y contrasta cada FIT restaurado con el hash almacenado en la base. El clúster se elimina al terminar. Estas copias están en el mismo disco que la base: para protegerse de una avería del disco hay que guardarlas también en otro soporte privado. No arranques el servicio Java anterior contra esta base: tiene configurado `drop-and-create`.
+La verificación comprueba los hashes, restaura la base en un clúster PostgreSQL temporal, compara los recuentos y contrasta cada FIT restaurado con el hash almacenado en la base. El clúster se elimina al terminar. Estas copias están en el mismo disco que la base: para protegerse de una avería del disco hay que guardarlas también en otro soporte privado.
 
 En esta máquina, `infra/systemd/kore-backup.timer` ejecuta `create --verify` cada domingo a las 07:15. Para instalarlo:
 

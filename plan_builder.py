@@ -8,7 +8,7 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 
 from plan_engine import PlanDraft, WEEKDAYS
-from plan_excel import ACTIVE, DAILY_HEADERS, SUUNTO_HEADERS, WEEK_HEADERS, save_with_backup, style_table
+from plan_workbook import ACTIVE, DAILY_HEADERS, SUUNTO_HEADERS, WEEK_HEADERS, save_with_backup, style_table
 from session_catalog import default_catalog
 
 

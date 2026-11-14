@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
-from plan_excel import DAILY_HEADERS, SUUNTO_HEADERS, WEEK_HEADERS
+from plan_workbook import ACTIVE, DAILY_HEADERS, SUUNTO_HEADERS, WEEK_HEADERS, save_with_backup
 
 
 MADRID = ZoneInfo("Europe/Madrid")
@@ -213,3 +213,23 @@ def update_book(book: Workbook, workouts: list[dict], *, now: datetime | None = 
         config["B11"] = f"Semana {elapsed // 7 + 1} de {config['B6'].value}"
         config["B12"] = (end - today).days
     return book
+
+
+def refresh_active() -> int:
+    """Refresh the confirmed active workbook from the local database."""
+    if not ACTIVE.exists():
+        raise FileNotFoundError("No hay un bloque activo")
+    book = load_workbook(ACTIVE)
+    try:
+        start, end, _ = validate(book)
+        workouts = query_workouts(start, end)
+        update_book(book, workouts)
+        save_with_backup(book, ACTIVE)
+        return len(workouts)
+    finally:
+        book.close()
+
+
+if __name__ == "__main__":
+    count = refresh_active()
+    print(f"Plan activo actualizado con {count} actividades consultadas")

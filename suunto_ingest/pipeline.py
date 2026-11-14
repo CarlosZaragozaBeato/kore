@@ -73,6 +73,11 @@ def run(batch_size: int = 50) -> dict[str, int]:
                            (counts["fit_decoded"], run_id))
                 if decoded < batch_size:
                     break
+            stage = "plan"
+            db.execute("UPDATE suunto_pipeline_runs SET stage = %s WHERE run_id = %s", (stage, run_id))
+            from plan_daily_sync import refresh_active
+            from plan_workbook import ACTIVE
+            counts["plan_workouts"] = refresh_active() if ACTIVE.exists() else 0
         except Exception as exc:
             db.execute("""UPDATE suunto_pipeline_runs SET status = 'failed', stage = %s,
                 finished_at = NOW(), error_type = %s WHERE run_id = %s""",

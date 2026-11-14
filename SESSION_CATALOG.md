@@ -30,6 +30,6 @@ Las propuestas se incorporan primero como `draft`. Después deben pasar el valid
 
 ## Selección actual
 
-El motor recibe el nivel de entrada para velocidad y sostenido. Cada tres semanas de desarrollo intenta avanzar un nivel. Si el nivel solicitado no es compatible con la distancia y fase, elige el nivel elegible más alto que no lo supere y registra la diferencia. Las descargas, la afinación, la competición y la primera semana con fatiga elevada no incorporan calidad estructurada. Los rodajes y la tirada se eligen también desde el catálogo.
+El motor recibe el nivel de entrada para velocidad y sostenido. La cadencia elegida en el formulario determina cada cuántas semanas de desarrollo intenta avanzar un nivel. Si el nivel solicitado no es compatible con la distancia y fase, elige el nivel elegible más alto que no lo supere y registra la diferencia. La mezcla puede combinar velocidad y sostenido o repetir la necesidad principal. Las descargas, la afinación, la competición y la primera semana con fatiga elevada no incorporan calidad estructurada. Los rodajes y la tirada se eligen también desde el catálogo.
 
 Esta lógica es deliberadamente explícita. `training_level.py` propone un nivel candidato desde el histórico de Suunto, muestra la evidencia y mantiene la elección final editable. La detección describe exposición compatible; no cambia el estado `draft` de los recursos ni valida sus dosis.

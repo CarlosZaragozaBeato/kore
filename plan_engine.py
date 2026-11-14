@@ -9,6 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+from planning_profiles import load_profiles
 from session_catalog import SessionCatalog, SessionResource, default_catalog
 
 
@@ -31,8 +32,11 @@ class PlanInputs(BaseModel):
     training_days: list[int] = Field(min_length=2, max_length=7)
     long_run_day: int = Field(ge=0, le=6)
     quality_sessions_per_week: int = Field(default=2, ge=0, le=2)
+    quality_days: list[int] | None = None
+    quality_mix: Literal["mixed", "focused"] = "mixed"
     speed_entry_level: int = Field(ge=0, le=3)
     sustained_entry_level: int = Field(ge=0, le=3)
+    dose_progression_every: int = Field(default=3, ge=2, le=8)
     suggested_speed_level: int | None = Field(default=None, ge=0, le=3)
     suggested_sustained_level: int | None = Field(default=None, ge=0, le=3)
     speed_suggestion_confidence: Literal["low", "medium"] | None = None
@@ -43,8 +47,10 @@ class PlanInputs(BaseModel):
     assessment_window_days: int | None = Field(default=None, ge=28, le=365)
     max_weekly_increase_km: float = Field(ge=0, le=30)
     max_long_run_increase_km: float = Field(ge=0, le=10)
+    long_run_target_km: float | None = Field(default=None, gt=0, le=50)
     deload_every: int = Field(ge=2, le=8)
     deload_fraction: float = Field(ge=0.5, le=1.0)
+    deload_long_run_fraction: float = Field(default=0.8, ge=0.5, le=1.0)
     fatigue: Literal["normal", "elevated"]
 
     @model_validator(mode="after")
@@ -55,6 +61,19 @@ class PlanInputs(BaseModel):
             raise ValueError("training_days must be unique weekday numbers 0–6")
         if self.long_run_day not in self.training_days:
             raise ValueError("long_run_day must be one of training_days")
+        if self.quality_days is not None:
+            if len(self.quality_days) != self.quality_sessions_per_week:
+                raise ValueError("quality_days must match quality_sessions_per_week")
+            if len(set(self.quality_days)) != len(self.quality_days):
+                raise ValueError("quality_days must be unique")
+            if any(day not in self.training_days or day == self.long_run_day
+                   for day in self.quality_days):
+                raise ValueError("quality_days must be training days other than the long-run day")
+            protected = [self.long_run_day, *self.quality_days]
+            if any(min((left - right) % 7, (right - left) % 7) < 2
+                   for index, left in enumerate(protected)
+                   for right in protected[index + 1:]):
+                raise ValueError("quality and long-run days need at least one day between them")
         if self.objective == "race":
             if self.event_date is None:
                 raise ValueError("race objective requires event_date")
@@ -109,6 +128,8 @@ def _phase(inputs: PlanInputs, week: int) -> str:
 
 
 def _quality_days(inputs: PlanInputs) -> tuple[int, ...]:
+    if inputs.quality_days is not None:
+        return tuple(sorted(inputs.quality_days))
     days = sorted(inputs.training_days)
     if len(days) < 4 or inputs.quality_sessions_per_week == 0:
         return ()
@@ -125,7 +146,8 @@ def _quality_days(inputs: PlanInputs) -> tuple[int, ...]:
 
 def _recipe(catalog: SessionCatalog, inputs: PlanInputs, kind: str, level: int,
             week: int, phase: str) -> tuple[SessionResource, int]:
-    progression = (week - 1) // 3 if phase not in ("descarga", "afinación", "competición") else 0
+    progression = ((week - 1) // inputs.dose_progression_every
+                   if phase not in ("descarga", "afinación", "competición") else 0)
     requested_level = min(3, level + progression)
     return catalog.select_progression(kind, requested_level=requested_level,
                                       focus_distance=inputs.focus_distance,
@@ -148,6 +170,10 @@ def _allocate(total: float, days: list[int], long_day: int, long_km: float,
 def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanDraft:
     catalog = catalog or default_catalog()
     notes = []
+    reference_km = load_profiles()[inputs.focus_distance]
+    notes.append(f"Referencia personal configurada para {inputs.focus_distance}: {reference_km:g} km/semana; no se trata como obligación en descargas.")
+    if inputs.target_weekly_km < reference_km:
+        notes.append(f"El objetivo de {inputs.target_weekly_km:g} km queda por debajo de la referencia personal de {reference_km:g} km.")
     quality_days = _quality_days(inputs)
     if not quality_days:
         notes.append("Con estos días no se programa calidad: revisar distribución si se desea incluirla.")
@@ -184,12 +210,18 @@ def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanD
         long_day = inputs.event_date.weekday() if event_week else inputs.long_run_day
         if event_week:
             long_km = race_km
+        elif phase in ("descarga", "afinación"):
+            long_km = round(min(long_baseline * inputs.deload_long_run_fraction,
+                                planned * 0.40), 1)
         else:
             long_share = {"5k": 0.25, "10k": 0.30, "21k": 0.34, "42k": 0.38}[inputs.focus_distance]
             if inputs.ultimate_distance == "42k":
                 long_share = max(long_share, 0.35)
+            caps = [planned * long_share]
+            if inputs.long_run_target_km is not None:
+                caps.append(inputs.long_run_target_km)
             long_baseline = min(long_baseline + (inputs.max_long_run_increase_km if week > 1 else 0),
-                                planned * long_share)
+                                *caps)
             long_km = round(long_baseline, 1)
         if planned - long_km < len(inputs.training_days) - 1:
             raise ValueError("Weekly volume leaves less than 1 km for another training day; adjust inputs")
@@ -226,7 +258,8 @@ def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanD
                     main = "speed" if (week % 2 == 1) == shorter_focus else "sustained"
                 else:
                     main = "speed" if inputs.bottleneck == "speed" else "sustained"
-                kind = main if rank == 0 else ("sustained" if main == "speed" else "speed")
+                kind = (main if rank == 0 or inputs.quality_mix == "focused"
+                        else ("sustained" if main == "speed" else "speed"))
                 level = inputs.speed_entry_level if kind == "speed" else inputs.sustained_entry_level
                 resource, requested_level = _recipe(catalog, inputs, kind, level, week, phase)
                 dose = resource.dose

@@ -21,13 +21,14 @@ from plan_builder import activate_draft, build_book
 from plan_adaptation import suggest_adaptation
 from plan_adjustment import AdjustmentProposal, apply_adjustment, build_adjustment_proposal
 from plan_engine import PlanDraft, PlanInputs, WEEKDAYS, generate
-from plan_excel import ACTIVE, save_with_backup
+from plan_workbook import ACTIVE, save_with_backup
 from plan_feedback import FeedbackInput, feedback_entries, upsert_feedback
 from plan_daily_sync import validate
+from planning_profiles import load_profiles
 from training_level import MADRID, TrainingAssessment, assess_local_history
 
 
-app = FastAPI(title="Kore: generador de planes", version="0.4.0")
+app = FastAPI(title="Kore: generador de planes", version="0.5.0")
 _drafts: dict[str, PlanDraft] = {}
 _adjustments: dict[str, tuple[str, AdjustmentProposal]] = {}
 _assessment_cache: tuple[float, TrainingAssessment] | None = None
@@ -89,7 +90,9 @@ def form(error: str = "", assessment: TrainingAssessment | None = None,
          assessment_error: str | None = None) -> str:
     today = date.today()
     monday = today + timedelta(days=(7 - today.weekday()) % 7)
-    distances = tuple((v, v) for v in ("5k", "10k", "21k", "42k"))
+    profiles = load_profiles()
+    distances = tuple((v, f"{v} · referencia {profiles[v]:g} km/semana")
+                      for v in ("5k", "10k", "21k", "42k"))
     current_km = f"{assessment.current_weekly_km:g}" if assessment and assessment.current_weekly_km else ""
     long_km = f"{assessment.recent_long_run_km:g}" if assessment and assessment.recent_long_run_km else ""
     speed_level = str(assessment.speed.suggested_level) if assessment else "0"
@@ -133,12 +136,22 @@ def form(error: str = "", assessment: TrainingAssessment | None = None,
                      tuple((str(day), name) for day, name in enumerate(WEEKDAYS)), "6")
             + select("Sesiones estructuradas por semana, además de la tirada",
                      "quality_sessions_per_week", (("0", "Ninguna"), ("1", "Una"), ("2", "Dos")), "2")
+            + select("Primer día de calidad", "quality_days",
+                     (("", "Automático"),) + tuple((str(day), name) for day, name in enumerate(WEEKDAYS)), "")
+            + select("Segundo día de calidad", "quality_days",
+                     (("", "Automático"),) + tuple((str(day), name) for day, name in enumerate(WEEKDAYS)), "")
+            + select("Mezcla de calidad", "quality_mix",
+                     (("mixed", "Mixta: velocidad y sostenido"),
+                      ("focused", "Enfocada: repetir la necesidad principal")), "mixed")
             + field("Nivel inicial de series (0=1 min, 1=3 min, 2=1 km, 3=1,6 km)", "speed_entry_level", speed_level, type_="number")
             + field("Nivel inicial sostenido (0=6 min, 1=10 min, 2=15 min, 3=continuo)", "sustained_entry_level", sustained_level, type_="number")
+            + field("Progresar la dosis cada N semanas", "dose_progression_every", "3", type_="number")
             + field("Aumento máximo elegido de km/semana", "max_weekly_increase_km", "4", type_="number")
             + field("Aumento máximo elegido de tirada larga (km/semana)", "max_long_run_increase_km", "1", type_="number")
+            + field("Objetivo máximo de tirada larga (km, opcional)", "long_run_target_km", "", type_="number", required=False)
             + field("Cada cuántas semanas reducir carga", "deload_every", "4", type_="number")
             + field("Factor de semana reducida (0,5–1)", "deload_fraction", "0.8", type_="number")
+            + field("Factor de tirada larga en descarga (0,5–1)", "deload_long_run_fraction", "0.8", type_="number")
             + "</fieldset><p><small>Los límites y progresiones son elecciones para el borrador, no valores óptimos universales. "
             "Los ritmos de calidad quedan por calibrar.</small></p><button>Generar borrador</button></form>")
 
@@ -347,8 +360,12 @@ async def preview(request: Request):
     data = {key: value[-1] for key, value in raw.items()}
     try:
         data["training_days"] = [int(part) for part in raw.get("training_days", [])]
+        selected_quality_days = [int(part) for part in raw.get("quality_days", []) if part]
+        data["quality_days"] = selected_quality_days or None
         if not data.get("event_date"):
             data["event_date"] = None
+        if not data.get("long_run_target_km"):
+            data["long_run_target_km"] = None
         inputs = PlanInputs.model_validate(data)
         draft = generate(inputs)
     except (ValidationError, ValueError) as exc:

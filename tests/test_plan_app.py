@@ -32,6 +32,8 @@ class PlanAppTest(unittest.TestCase):
         self.assertIn("value='80.5'", response.text)
         self.assertIn("name='speed_entry_level' type='number' value='2'", response.text)
         self.assertIn("evidencia velocidad", response.text)
+        self.assertIn("name='quality_days'", response.text)
+        self.assertIn("name='dose_progression_every'", response.text)
 
     def test_preview_and_download_keep_plan_in_draft_state(self):
         client = TestClient(app)
@@ -40,9 +42,12 @@ class PlanAppTest(unittest.TestCase):
             "objective": "development", "weeks": "8", "bottleneck": "speed",
             "current_weekly_km": "80", "target_weekly_km": "90",
             "recent_long_run_km": "18", "training_days": ["0", "1", "2", "3", "5", "6"],
-            "long_run_day": "6", "speed_entry_level": "2", "sustained_entry_level": "1",
+            "long_run_day": "6", "quality_days": ["1", "3"], "quality_mix": "focused",
+            "speed_entry_level": "2", "sustained_entry_level": "1",
+            "dose_progression_every": "2", "long_run_target_km": "20",
             "max_weekly_increase_km": "4", "max_long_run_increase_km": "1",
-            "deload_every": "4", "deload_fraction": "0.8", "fatigue": "normal",
+            "deload_every": "4", "deload_fraction": "0.8",
+            "deload_long_run_fraction": "0.7", "fatigue": "normal",
             "suggested_speed_level": "2", "suggested_sustained_level": "1",
             "speed_suggestion_confidence": "medium",
             "sustained_suggestion_confidence": "medium",
@@ -61,7 +66,12 @@ class PlanAppTest(unittest.TestCase):
         self.assertIsNone(book["Configuración"]["B7"].value)
         self.assertEqual(book["Configuración"]["B20"].value, 2)
         self.assertEqual(book["Configuración"]["B22"].value, 1)
-        self.assertEqual(book["Reglas y decisiones"]["B21"].value, "evidencia velocidad")
+        rules = {row[0]: row[1] for row in book["Reglas y decisiones"].iter_rows(
+            min_row=2, values_only=True)}
+        self.assertEqual(rules["speed_evidence_summary"], "evidencia velocidad")
+        self.assertEqual(rules["quality_days"], "[1, 3]")
+        self.assertEqual(rules["quality_mix"], "focused")
+        self.assertEqual(rules["long_run_target_km"], "20.0")
         self.assertEqual(book["Plan diario"].max_row, 57)
         book.close()
 

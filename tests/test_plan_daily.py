@@ -3,12 +3,27 @@
 import unittest
 from datetime import date, datetime, timezone
 
+from plan_builder import build_book
 from plan_daily_sync import update_book
-from plan_excel import make_book
+from plan_engine import PlanInputs, generate
 
 
 START = date(2026, 11, 16)
 TAG = "kore_10k_20261116"
+
+
+def active_book():
+    draft = generate(PlanInputs(
+        start_date=START, focus_distance="10k", ultimate_distance="42k",
+        objective="development", weeks=12, bottleneck="balanced",
+        current_weekly_km=74, target_weekly_km=86, recent_long_run_km=15,
+        training_days=[0, 1, 2, 3, 5, 6], long_run_day=6,
+        quality_sessions_per_week=2, speed_entry_level=0,
+        sustained_entry_level=0, max_weekly_increase_km=2,
+        max_long_run_increase_km=1, deload_every=4,
+        deload_fraction=.8, fatigue="normal",
+    ))
+    return draft, build_book(draft, active=True)
 
 
 def workout(key, when, *, tags=None, km=9.8, sport="running", decoded=True):
@@ -28,7 +43,7 @@ def workout(key, when, *, tags=None, km=9.8, sport="running", decoded=True):
 
 class DailyPlanTests(unittest.TestCase):
     def setUp(self):
-        self.book = make_book("10k", START, active=True, no_race=True)
+        self.draft, self.book = active_book()
         self.now = datetime(2026, 11, 20, 12, tzinfo=timezone.utc)
 
     def test_labeled_monday_updates_same_row_and_is_idempotent(self):
@@ -38,15 +53,16 @@ class DailyPlanTests(unittest.TestCase):
         update_book(self.book, [monday, monday, ignored], now=self.now)
         row = self.book["Plan diario"][2]
         self.assertEqual((row[0].value, row[3].value, row[4].value, row[6].value),
-                         (1, "lunes", "Recovery", 10))
+                         (1, "lunes", self.draft.sessions[0].name, self.draft.sessions[0].km))
         self.assertEqual(row[9].value, 9.8)
         self.assertEqual(row[15].value, "run-1")
         self.assertEqual(self.book["Suunto"].max_row, 2)
-        self.assertEqual(self.book["Plan semanal"]["E2"].value, 74)
+        self.assertEqual(self.book["Plan semanal"]["E2"].value, self.draft.weekly_km[0])
         self.assertEqual(self.book["Plan semanal"]["F2"].value, 9.8)
         update_book(self.book, [monday, ignored], now=self.now)
         self.assertEqual(self.book["Suunto"].max_row, 2)
-        self.assertEqual((row[6].value, row[9].value), (10, 9.8))
+        self.assertEqual((row[6].value, row[9].value),
+                         (self.draft.sessions[0].km, 9.8))
         self.assertEqual(self.book["Configuración"]["B10"].value, "Día 5 de 84")
         self.assertEqual(self.book["Configuración"]["B11"].value, "Semana 1 de 12")
 
@@ -71,20 +87,21 @@ class DailyPlanTests(unittest.TestCase):
         self.assertEqual(self.book["Suunto"].max_row, 4)
 
     def test_rejects_template_as_active(self):
-        base = make_book("10k", START)
+        base = build_book(self.draft)
         with self.assertRaises(ValueError):
             update_book(base, [], now=self.now)
 
-    def test_three_progressive_key_sessions_with_dose_ranges(self):
+    def test_key_sessions_have_dose_ranges(self):
         daily = self.book["Plan diario"]
         first = [r for r in daily.iter_rows(min_row=2, max_row=8, values_only=True) if r[20] is not None]
         self.assertEqual(len(first), 3)
-        self.assertEqual(first[0][4], "Series 1 min")
-        week_seven = [r for r in daily.iter_rows(min_row=44, max_row=50, values_only=True) if r[20] is not None]
-        self.assertEqual([r[4] for r in week_seven], ["Series 1 km", "Progresivo", "Tirada + 10k"])
-        self.assertEqual([r[22] for r in week_seven], ["6×1 km", "8 km", "3×2 km"])
-        self.assertTrue(all(r[21] and r[23] for r in week_seven))
-        self.assertTrue(all(self.book["Plan semanal"].cell(n, 12).value == 3 for n in range(2, 14)))
+        structured = [row for row in first if row[5] in ("speed", "sustained")]
+        self.assertTrue(all(row[21] and row[22] and row[23] for row in structured))
+        expected = [sum(session.role in ("speed", "sustained", "long", "race")
+                        for session in self.draft.sessions[week * 7:(week + 1) * 7])
+                    for week in range(12)]
+        self.assertEqual([self.book["Plan semanal"].cell(row, 12).value
+                          for row in range(2, 14)], expected)
 
     def test_missing_metrics_do_not_become_partial_daily_totals(self):
         complete = workout("complete", datetime(2026, 11, 16, 7, tzinfo=timezone.utc))

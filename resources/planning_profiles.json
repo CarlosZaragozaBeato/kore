@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "description": "Referencias personales editables; no son mínimos fisiológicos universales.",
+  "distances": {
+    "5k": {"reference_weekly_km": 80},
+    "10k": {"reference_weekly_km": 80},
+    "21k": {"reference_weekly_km": 90},
+    "42k": {"reference_weekly_km": 100}
+  }
+}

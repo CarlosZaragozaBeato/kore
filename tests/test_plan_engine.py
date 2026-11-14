@@ -40,6 +40,7 @@ class PlanEngineTest(unittest.TestCase):
         draft = generate(inputs(training_days=[1, 3, 5, 6], target_weekly_km=88))
         self.assertEqual(len(draft.sessions), 56)
         self.assertEqual(draft.weekly_km[:4], (80, 84, 88, 70.4))
+        self.assertEqual(draft.weekly_km[4:6], (88, 88))
         for week in range(8):
             days = draft.sessions[week * 7:(week + 1) * 7]
             self.assertEqual({s.day.weekday() for s in days if s.km}, {1, 3, 5, 6})
@@ -81,6 +82,13 @@ class PlanEngineTest(unittest.TestCase):
         long_runs = [session.km for session in draft.sessions if session.role == "long"]
         self.assertEqual(long_runs[:5], [18, 19, 19, 14.2, 19])
         self.assertTrue(any("referencia personal" in note.lower() for note in draft.notes))
+
+    def test_volume_resumes_from_pre_deload_development_load(self):
+        draft = generate(inputs(current_weekly_km=78, target_weekly_km=90,
+                                max_weekly_increase_km=2))
+        self.assertEqual(draft.weekly_km,
+                         (78, 80, 82, 65.6, 84, 86, 88, 70.4))
+        self.assertTrue(any("pico calculado de 88 km" in note for note in draft.notes))
 
     def test_supported_distances_bottlenecks_and_entry_levels_generate(self):
         for distance in ("5k", "10k", "21k", "42k"):

@@ -187,26 +187,29 @@ def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanD
 
     sessions: list[Session] = []
     volumes: list[float] = []
-    baseline = inputs.current_weekly_km
+    development_load = inputs.current_weekly_km
     long_baseline = inputs.recent_long_run_km
     for week in range(1, inputs.weeks + 1):
         phase = _phase(inputs, week)
         if week == 1:
-            planned = min(baseline, inputs.target_weekly_km) * (0.8 if inputs.fatigue == "elevated" else 1.0)
+            planned = min(development_load, inputs.target_weekly_km) * (0.8 if inputs.fatigue == "elevated" else 1.0)
         elif phase == "descarga":
-            planned = volumes[-1] * inputs.deload_fraction
+            planned = development_load * inputs.deload_fraction
         elif phase == "afinación":
-            planned = volumes[-1] * 0.8
+            planned = development_load * 0.8
         elif phase == "competición":
-            planned = volumes[-1] * 0.7
+            planned = development_load * 0.7
         else:
-            planned = min(inputs.target_weekly_km, max(baseline, volumes[-1]) + inputs.max_weekly_increase_km)
+            planned = min(inputs.target_weekly_km,
+                          development_load + inputs.max_weekly_increase_km)
         event_week = phase == "competición"
         race_km = DISTANCE_KM[inputs.focus_distance]
         if event_week:
             planned = max(planned, race_km)
         planned = round(planned, 1)
         volumes.append(planned)
+        if phase not in ("descarga", "afinación", "competición"):
+            development_load = planned
         long_day = inputs.event_date.weekday() if event_week else inputs.long_run_day
         if event_week:
             long_km = race_km
@@ -282,6 +285,7 @@ def generate(inputs: PlanInputs, catalog: SessionCatalog | None = None) -> PlanD
                                   selection_reason=("Día posterior a la tirada larga."
                                                     if recovery else "Día de apoyo para completar el volumen elegido."))
             sessions.append(session)
-    if volumes[-1] < inputs.target_weekly_km and inputs.objective == "development":
-        notes.append("El volumen final queda bajo el objetivo solicitado con el límite de incremento elegido.")
+    if max(volumes) < inputs.target_weekly_km and inputs.objective == "development":
+        notes.append(f"El pico calculado de {max(volumes):g} km queda bajo el objetivo de "
+                     f"{inputs.target_weekly_km:g} km con la duración y el incremento elegidos.")
     return PlanDraft(inputs, tuple(sessions), tuple(volumes), tuple(notes))

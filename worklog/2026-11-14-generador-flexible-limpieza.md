@@ -8,6 +8,7 @@ Revisado el primer bloque activado con el generador parametrizado. Se amplió la
 
 - La duración y el incremento máximo seleccionados pueden no permitir alcanzar el volumen objetivo; el borrador ya lo indicaba en una nota, pero el formulario necesitaba hacer más visibles los controles que producen esa trayectoria.
 - La tirada larga aumentaba incluso en una semana de descarga. Se corrigió para aplicar una reducción específica sin avanzar el estado de progresión durante esa semana.
+- Tras una descarga, el volumen retomaba desde la carga inicial y repetía la progresión. Ahora continúa desde el último nivel de desarrollo previo; la descarga no rebaja ese estado.
 - La colocación y combinación de sesiones de calidad eran demasiado automáticas.
 
 El libro activo se inspeccionó en modo de solo lectura y no se regeneró ni sustituyó.
@@ -32,6 +33,6 @@ El libro activo se inspeccionó en modo de solo lectura y no se regeneró ni sus
 
 ## Verificación y siguiente paso
 
-Las pruebas cubren los parámetros nuevos, la reducción de tirada en descarga y el contrato de enlace diario con el libro generado por el motor vigente. Las 47 pruebas disponibles pasaron tras la refactorización; después se amplió también la prueba del formulario para comprobar que los parámetros nuevos quedan guardados en el Excel.
+Las 48 pruebas del repositorio pasan. Cubren los parámetros nuevos, la reducción de tirada en descarga, la continuidad del volumen tras descargar y el contrato de enlace diario con el libro generado por el motor vigente. La prueba del formulario comprueba además que los parámetros nuevos quedan guardados en el Excel.
 
 El bloque activo actual conserva las reglas con las que fue creado. Si se desean las nuevas reglas de descarga y flexibilidad, hay que generar un nuevo borrador, compararlo y activarlo explícitamente antes de empezar o cuando se decida cambiar de bloque.

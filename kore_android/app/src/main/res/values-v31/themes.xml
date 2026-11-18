@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Kore" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">#101820</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:drawable/ic_media_play</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#F2A33C</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

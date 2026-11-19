@@ -11,6 +11,7 @@ La sesión Kore es el archivo canónico y portátil del corredor. La versión ac
 | `museum` | Sesiones especiales elegidas por el usuario y su relato personal. |
 | `personalBests` | Todas las marcas actuales e históricas con evidencia. |
 | `shoes` | Fichas, valoraciones, uso por fases y ciclo de vida del calzado. |
+| `routes` | Recorridos guardados manualmente o importados desde una fuente externa. |
 | `sources` | Conexiones y cursores por proveedor; nunca secretos. |
 | `settings` | Preferencias portátiles. |
 
@@ -58,6 +59,12 @@ Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, esta
   {"fromKm": 200, "toKm": 700, "uses": ["easy", "long-run"]}
 ]
 ```
+
+## Ruta
+
+Cada `route` conserva identidad, nombre, distancia, ubicación, superficie, desnivel, notas, fecha de creación y `sourceRef`. La primera implementación admite creación manual; GPX y proveedores se normalizarán al mismo modelo.
+
+La geometría completa no se incrusta obligatoriamente en el JSON principal. Podrá vivir como adjunto privado, mientras la sesión mantiene resumen y referencia estable.
 
 ## Límites y seguridad
 

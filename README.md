@@ -8,9 +8,12 @@ La versión actual es un mockup navegable con datos de demostración:
 
 - Inicio con resumen vital y recuerdos destacados.
 - Museo de sesiones elegidas por el usuario.
+- Rutas guardadas manualmente dentro de la sesión.
 - Marcas personales actuales e históricas.
 - Zapatillas, kilometraje, valoraciones y fases de uso.
 - Ajustes, sesión local y fuentes externas simuladas.
+
+La creación del archivo y el alta manual de rutas ya son funcionales. El resto de áreas mantiene una demostración visual o estado vacío hasta sus siguientes cortes.
 
 ## Compilar
 

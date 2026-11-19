@@ -27,6 +27,7 @@ object SessionFactory {
                     "museum" to JsonArray(emptyList()),
                     "personalBests" to JsonArray(emptyList()),
                     "shoes" to JsonArray(emptyList()),
+                    "routes" to JsonArray(emptyList()),
                     "sources" to JsonObject(
                         mapOf(
                             "connections" to JsonArray(emptyList()),

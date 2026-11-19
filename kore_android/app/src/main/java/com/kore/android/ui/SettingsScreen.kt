@@ -36,6 +36,8 @@ fun SettingsScreen(
     hasRealSession: Boolean,
     onImportSession: () -> Unit,
     onExportSession: () -> Unit,
+    onCreateArchive: () -> Unit,
+    demo: Boolean,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
@@ -44,7 +46,7 @@ fun SettingsScreen(
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DemoBadge()
+                if (demo) DemoBadge()
                 Text("Ajustes", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
                 Text("Tu archivo, tus fuentes, tus datos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -52,7 +54,7 @@ fun SettingsScreen(
         item { SectionTitle("Fuentes de actividad") }
         item {
             KoreCard {
-                SourceRow("Suunto", "Conectada · Hoy, 08:42", true)
+                SourceRow("Suunto", if (demo) "Conectada · Demostración" else "No conectada", demo)
                 SourceRow("Garmin", "Disponible en el futuro", false)
                 SourceRow("COROS", "Disponible en el futuro", false)
                 SourceRow("FIT / GPX", "Importación de archivos", false)
@@ -81,6 +83,11 @@ fun SettingsScreen(
                         Icon(Icons.Rounded.Upload, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
                         Text("Exportar")
+                    }
+                }
+                if (!hasRealSession) {
+                    Button(onClick = onCreateArchive, modifier = Modifier.fillMaxWidth()) {
+                        Text("Crear mi archivo real")
                     }
                 }
             }

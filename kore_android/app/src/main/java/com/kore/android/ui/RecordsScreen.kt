@@ -30,7 +30,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RecordsScreen(padding: PaddingValues) {
+fun RecordsScreen(padding: PaddingValues, demo: Boolean) {
+    if (!demo) {
+        EmptyFeatureScreen(
+            padding,
+            "Marcas personales",
+            "Todavía no hay marcas en tu archivo.",
+            "Podrás añadirlas manualmente o detectarlas desde una actividad importada.",
+        )
+        return
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 18.dp),

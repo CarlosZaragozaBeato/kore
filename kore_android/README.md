@@ -18,10 +18,11 @@ El APK debug queda en `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Alcance actual
 
-- Mockup navegable con Inicio, Museo, Marcas, Zapatillas y Ajustes.
+- Navegación con Inicio, Museo, Rutas, Marcas y Zapatillas; Ajustes se abre desde Inicio.
 - Archivo visual de sesiones especiales, PB actuales/históricos, rotación y vida útil del calzado y fuentes simuladas.
-- Datos claramente marcados como demostración; no sincroniza ni modifica entrenamiento real.
+- El modo demostración está claramente marcado y no modifica datos; el archivo real se mantiene separado.
 - El núcleo mantiene creación, migración, reapertura, importación y exportación de una sesión Kore v2; el mock expone importación/exportación desde Ajustes.
 - Persistencia local atómica y sin base de datos.
+- Onboarding, creación/reapertura de sesión y alta manual de rutas funcionales.
 
-Todavía no incluye mutaciones reales de museo/PB/zapatillas ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.
+Todavía no incluye mutaciones reales de museo/PB/zapatillas, geometría GPX ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.

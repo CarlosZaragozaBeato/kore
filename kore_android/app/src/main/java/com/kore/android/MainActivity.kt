@@ -31,6 +31,8 @@ class MainActivity : ComponentActivity() {
             KoreTheme {
                 KoreApp(
                     state = state,
+                    onCreateSession = sessionViewModel::create,
+                    onAddRoute = sessionViewModel::addRoute,
                     onImportSession = {
                         importLauncher.launch(arrayOf("application/json", "text/plain"))
                     },

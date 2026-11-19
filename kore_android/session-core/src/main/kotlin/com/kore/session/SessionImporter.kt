@@ -37,7 +37,7 @@ object SessionImporter {
             version < CURRENT_SESSION_VERSION -> throw SessionFormatException(
                 "Session version $version has no available migrator",
             )
-            else -> root
+            else -> normalizeV2(root)
         }
         validateEnvelope(migrated)
         return SessionDocument(migrated)
@@ -69,6 +69,7 @@ object SessionImporter {
         "museum",
         "personalBests",
         "shoes",
+        "routes",
     )
 
     private fun migrateV1(root: JsonObject): JsonObject = JsonObject(
@@ -78,11 +79,18 @@ object SessionImporter {
             this.putIfAbsent("museum", JsonArray(emptyList()))
             this.putIfAbsent("personalBests", root["personalRecords"] as? JsonArray ?: JsonArray(emptyList()))
             this.putIfAbsent("shoes", JsonArray(emptyList()))
+            this.putIfAbsent("routes", JsonArray(emptyList()))
             this.putIfAbsent(
                 "sources",
                 JsonObject(mapOf("connections" to JsonArray(emptyList()))),
             )
             this.putIfAbsent("settings", JsonObject(emptyMap()))
+        },
+    )
+
+    private fun normalizeV2(root: JsonObject): JsonObject = JsonObject(
+        root.toMutableMap().apply {
+            this.putIfAbsent("routes", JsonArray(emptyList()))
         },
     )
 }

@@ -9,7 +9,7 @@ Construir el archivo personal de un runner como aplicación Android nativa, loca
 - La implementación activa vive en `kore_android/`.
 - Usar Kotlin, Jetpack Compose y Material 3. No introducir Java, WebView, React Native ni base de datos.
 - `session-core` es Kotlin puro y contiene contrato JSON, validaciones y mutaciones.
-- El dominio usa `activity`, `sourceRef`, `museumEntry`, `personalBest` y `shoe`; no exponer modelos Suunto fuera de su adaptador.
+- El dominio usa `activity`, `sourceRef`, `museumEntry`, `personalBest`, `shoe` y `route`; no exponer modelos Suunto fuera de su adaptador.
 - Kore no planifica entrenamientos ni prescribe carga. No reintroducir planes, objetivos deportivos o puntuaciones de forma.
 - `app` contiene UI, almacenamiento Android y adaptadores. No mutar JSON manualmente desde Compose.
 - Preservar campos desconocidos, validar antes de sustituir una sesión y rechazar versiones futuras sin guardar.

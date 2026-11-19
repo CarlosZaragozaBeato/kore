@@ -10,6 +10,7 @@ La experiencia debe sentirse como un museo personal, no como una tabla de activi
 
 - **Inicio:** resumen vital del corredor, últimas incorporaciones y recuerdos destacados.
 - **Museo:** sesiones elegidas explícitamente por el usuario, con historia, métricas, etiquetas, zapatillas y marcas vinculadas.
+- **Rutas:** recorridos favoritos o relevantes, creados manualmente o importados desde GPX/proveedores.
 - **Marcas:** PB actuales e histórico completo por distancia, incluyendo cuándo y en qué actividad se lograron.
 - **Zapatillas:** rotación activa, kilometraje, coste, valoraciones, usos por etapas e histórico retirado.
 - **Ajustes:** sesión portable, fuentes externas, importación/exportación y privacidad.
@@ -23,6 +24,7 @@ Kore nunca usa entidades Suunto como modelo interno. Define un vocabulario canó
 - `museumEntry`: pieza seleccionada para el museo, con snapshot y relato personal.
 - `personalBest`: marca lograda en una distancia y su evidencia.
 - `shoe`: zapatilla y su ciclo de vida.
+- `route`: recorrido normalizado, independiente de su origen manual, GPX o proveedor.
 
 Suunto es el primer adaptador. Garmin, COROS, Polar, Strava, un FIT o una entrada manual deben poder producir las mismas entidades sin cambiar el archivo de sesión ni la interfaz.
 
@@ -60,8 +62,9 @@ La aplicación funciona sin cuenta Kore, backend o base de datos. La sesión `*.
 ## Secuencia de implementación
 
 1. Contrato de sesión v2 y migración preservadora desde v1.
-2. Mockup nuevo: Inicio, Museo, Marcas, Zapatillas y Ajustes.
-3. Mutaciones Kotlin para zapatillas, museo y PB con pruebas.
-4. Adaptador canónico y selección de actividades Suunto.
-5. Asignación de zapatillas y cálculo verificable de kilometraje.
-6. Importación/exportación completa y adaptadores adicionales.
+2. Mockup nuevo: Inicio, Museo, Rutas, Marcas, Zapatillas y Ajustes.
+3. Creación local de sesión y primer flujo funcional de rutas.
+4. Mutaciones Kotlin para zapatillas, museo y PB con pruebas.
+5. Adaptador canónico y selección de actividades Suunto.
+6. Asignación de zapatillas y cálculo verificable de kilometraje.
+7. Importación/exportación completa y adaptadores adicionales.

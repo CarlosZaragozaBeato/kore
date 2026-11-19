@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -74,4 +75,25 @@ fun Label(text: String) {
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+@Composable
+fun EmptyFeatureScreen(
+    padding: androidx.compose.foundation.layout.PaddingValues,
+    title: String,
+    subtitle: String,
+    nextStep: String,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+        Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        KoreCard(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
+            Text("Próximamente", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(nextStep)
+            Text("Tu archivo real nunca mostrará elementos de demostración.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

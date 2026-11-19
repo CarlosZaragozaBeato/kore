@@ -35,6 +35,7 @@ class SessionDocument internal constructor(
         museumEntries = root.arraySize("museum"),
         personalBests = root.arraySize("personalBests"),
         shoes = root.arraySize("shoes"),
+        routes = root.arraySize("routes"),
         sources = root.objectValue("sources").arraySize("connections"),
         unknownTopLevelKeys = root.keys - KNOWN_TOP_LEVEL_KEYS,
     )
@@ -47,6 +48,7 @@ data class SessionInventory(
     val museumEntries: Int,
     val personalBests: Int,
     val shoes: Int,
+    val routes: Int,
     val sources: Int,
     val unknownTopLevelKeys: Set<String>,
 )
@@ -58,6 +60,7 @@ internal val KNOWN_TOP_LEVEL_KEYS = setOf(
     "museum",
     "personalBests",
     "shoes",
+    "routes",
     "sources",
     "settings",
 )

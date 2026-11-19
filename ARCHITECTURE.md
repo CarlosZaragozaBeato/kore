@@ -12,10 +12,10 @@ kore_android/
 
 ## Persistencia
 
-La sesión `*.kore.json` es la fuente canónica de perfil, actividades normalizadas, museo, marcas y zapatillas. FIT y muestras masivas serán caché privada recuperable desde el proveedor.
+La sesión `*.kore.json` es la fuente canónica de perfil, actividades normalizadas, museo, marcas, zapatillas y rutas. FIT, GPX completos y muestras masivas podrán ser adjuntos privados recuperables.
 
 No existe PostgreSQL ni backend en esta rama. La aplicación usa almacenamiento privado y exportación/importación explícita. Android Backup está desactivado.
 
 ## Estado actual
 
-El runtime ofrece el contrato de sesión v2, migración preservadora desde v1 y un mockup visual. Los adaptadores de proveedores y las mutaciones del archivo runner todavía no están conectados a las pantallas demostrativas.
+El runtime ofrece contrato v2, migración preservadora desde v1, creación/reapertura del archivo y alta persistente de rutas. Museo, PB, zapatillas y proveedores todavía no tienen mutaciones reales.

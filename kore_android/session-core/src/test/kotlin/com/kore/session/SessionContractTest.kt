@@ -22,6 +22,7 @@ class SessionContractTest {
         assertEquals(0, session.inventory().activities)
         assertEquals(0, session.inventory().museumEntries)
         assertEquals(0, session.inventory().personalBests)
+        assertEquals(0, session.inventory().routes)
         assertEquals(0, session.inventory().sources)
     }
 
@@ -88,5 +89,31 @@ class SessionContractTest {
         } finally {
             directory.deleteRecursively()
         }
+    }
+
+    @Test
+    fun `adding a route persists normalized data and preserves unknown fields`() {
+        val original = SessionFactory.create("Carlos")
+        val withUnknown = SessionDocument(JsonObject(original.root + ("future" to JsonPrimitive("keep"))))
+
+        val updated = withUnknown.addRoute(
+            RouteInput(
+                name = "  Vuelta al Retiro  ",
+                distanceKm = 8.4,
+                location = "Madrid",
+                surface = "Asfalto",
+                elevationGainMeters = 74,
+                notes = "Ruta rápida",
+            ),
+            id = "route-1",
+            now = Instant.parse("2026-11-19T10:00:00Z"),
+        )
+
+        val route = updated.routes().single()
+        assertEquals("Vuelta al Retiro", route.name)
+        assertEquals("asfalto", route.surface)
+        assertEquals(74, route.elevationGainMeters)
+        assertEquals("keep", updated.root["future"]?.jsonPrimitive?.content)
+        assertEquals(1, updated.inventory().routes)
     }
 }

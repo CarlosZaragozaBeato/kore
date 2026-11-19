@@ -5,10 +5,14 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kore.session.SessionDocument
+import com.kore.session.RouteInput
+import com.kore.session.addRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 sealed interface SessionUiState {
     data object Loading : SessionUiState
@@ -20,6 +24,7 @@ sealed interface SessionUiState {
 class SessionViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = AndroidSessionRepository(application)
     private val mutableState = MutableStateFlow<SessionUiState>(SessionUiState.Loading)
+    private val mutationMutex = Mutex()
 
     val state: StateFlow<SessionUiState> = mutableState.asStateFlow()
 
@@ -84,6 +89,24 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
                     SessionUiState.Error(error.message ?: "No se pudo exportar la sesión", session)
                 },
             )
+        }
+    }
+
+    fun addRoute(input: RouteInput) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val session = currentSession() ?: return@withLock
+                try {
+                    val updated = session.addRoute(input)
+                    repository.save(updated)
+                    mutableState.value = SessionUiState.Ready(updated, "Ruta guardada")
+                } catch (error: Exception) {
+                    mutableState.value = SessionUiState.Error(
+                        error.message ?: "No se pudo guardar la ruta",
+                        session,
+                    )
+                }
+            }
         }
     }
 

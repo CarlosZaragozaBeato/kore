@@ -33,6 +33,15 @@ data class Shoe(
     val status: String = "ACTIVA",
 )
 
+data class DemoRoute(
+    val name: String,
+    val location: String,
+    val distanceKm: Double,
+    val elevationMeters: Int,
+    val surface: String,
+    val note: String,
+)
+
 object MockData {
     val museum = listOf(
         MuseumPiece(
@@ -72,5 +81,11 @@ object MockData {
             "Adidas Adizero SL2", "Mixta", "10 AGO 2025", 611, 650,
             "104,00 €", "Rodajes suaves", 4.1, Color(0xFF3F8B67), "OBSERVAR",
         ),
+    )
+
+    val routes = listOf(
+        DemoRoute("Vuelta larga Casa de Campo", "Madrid", 24.6, 318, "Mixta", "Mi tirada larga de referencia."),
+        DemoRoute("Anillo del Retiro", "Madrid", 4.3, 34, "Asfalto", "Buena para tempo y repeticiones largas."),
+        DemoRoute("Subida a las antenas", "Sierra de Guadarrama", 17.8, 946, "Trail", "Ruta exigente con vistas al valle."),
     )
 }

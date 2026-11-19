@@ -42,7 +42,16 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShoesScreen(padding: PaddingValues) {
+fun ShoesScreen(padding: PaddingValues, demo: Boolean) {
+    if (!demo) {
+        EmptyFeatureScreen(
+            padding,
+            "Zapatillas",
+            "Todavía no has añadido zapatillas.",
+            "El próximo corte permitirá dar de alta una zapatilla y guardar precio, límite, notas y fases de uso.",
+        )
+        return
+    }
     var selected by remember { mutableStateOf<Shoe?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),

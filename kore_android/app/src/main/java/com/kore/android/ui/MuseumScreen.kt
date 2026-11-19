@@ -38,7 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MuseumScreen(padding: PaddingValues) {
+fun MuseumScreen(padding: PaddingValues, demo: Boolean) {
+    if (!demo) {
+        EmptyFeatureScreen(
+            padding,
+            "Museo",
+            "Todavía no has guardado ninguna sesión especial.",
+            "Primero conectaremos actividades; después podrás elegir un día y crear una pieza con su historia.",
+        )
+        return
+    }
     var filter by remember { mutableStateOf("Todas") }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),

@@ -1,47 +1,66 @@
-# Sesión personal de Kore
+# Sesión personal de Kore v2
 
-La sesión de Kore es el almacenamiento canónico, portátil y versionado del corredor. La aplicación móvil funcionará sin base de datos ni backend: reconstruirá la experiencia personal desde este documento, los recursos incluidos en la aplicación y Suunto. La primera versión se identifica con `"koreSession": 1`.
+La sesión Kore es el archivo canónico y portátil del corredor. La versión actual se identifica con `"koreSession": 2` y funciona sin backend ni base de datos.
 
-## Qué contiene
+## Secciones
 
-| Sección | Contenido |
+| Sección | Responsabilidad |
 |---|---|
-| `profile` | Identificador local, etiqueta y fechas. |
-| `activeGoal` / `goalHistory` | Objetivo vigente y objetivos anteriores. |
-| `activePlan` | Bloque activo completo: semanas, días, recursos parametrizados y resultados enlazados. |
-| `planArchive` | Planes anteriores compactos con planificación y ejecución suficientes para revisarlos sin conexión. |
-| `workouts` | Entrenamientos Suunto normalizados, métricas útiles, vueltas/intervalos necesarios y referencias a la fuente. |
-| `personalRecords` | Marca, distancia, fecha y referencia a la evidencia. |
-| `shoes` | Identidad, estado y asignaciones de actividades; el kilometraje se deriva de ellas. |
-| `diagnostics` | Pruebas de velocidad, capacidad aeróbica, umbral, resistencia específica y simulaciones. |
-| `ratings` | Foto actual e historial de puntuaciones relativas al objetivo, con versión y evidencia. |
-| `pinnedWorkouts` | Entrenamientos que el usuario decidió destacar. |
-| `milestones` | Hitos personales. |
-| `sync` | Identidad Suunto, cursores, fechas y estado de sincronización; nunca secretos. |
+| `profile` | Identidad local y fechas del archivo. |
+| `activities` | Actividades normalizadas necesarias para histórico, relaciones y consulta offline. |
+| `museum` | Sesiones especiales elegidas por el usuario y su relato personal. |
+| `personalBests` | Todas las marcas actuales e históricas con evidencia. |
+| `shoes` | Fichas, valoraciones, uso por fases y ciclo de vida del calzado. |
+| `sources` | Conexiones y cursores por proveedor; nunca secretos. |
 | `settings` | Preferencias portátiles. |
 
-El lector conserva campos desconocidos al importar y exportar. Una versión futura se rechaza sin reescribirla. La escritura es atómica dentro del almacenamiento privado de Android.
+## Actividad canónica
 
-## Qué queda fuera
+Una `activity` utiliza campos Kore estables: `id`, `sport`, `startedAt`, `durationSeconds`, `distanceMeters`, métricas normalizadas, laps relevantes y relaciones. Su procedencia vive exclusivamente en:
 
-- El catálogo de sesiones, perfiles y reglas del generador. Son recursos versionados de la app y se referencian mediante ID y versión.
-- Binarios FIT, respuestas originales, GPS punto a punto y muestras de alta frecuencia. Pueden mantenerse en caché privada y recuperarse desde Suunto.
-- Credenciales, refresh tokens, client secret o subscription key. Se almacenan por separado mediante mecanismos seguros de Android y nunca se exportan.
+```json
+{
+  "sourceRef": {
+    "provider": "suunto",
+    "externalId": "...",
+    "importedAt": "..."
+  }
+}
+```
 
-No habrá PostgreSQL, API FastAPI ni servicio Python necesarios para usar Kore.
+El adaptador convierte cada proveedor a este idioma. Ninguna pantalla depende de nombres de campos Suunto.
 
-## Política de tamaño
+## Pieza de museo
 
-La sesión conserva los datos semánticos necesarios para operar, analizar y visualizar sin conexión. Evita únicamente binarios y muestras masivas. Cada entrenamiento almacena resumen, laps relevantes y métricas derivadas junto a su ID Suunto. Cada día de plan guarda `resourceId`, `resourceVersion`, parámetros y resultado, sin copiar repetidamente la descripción estática del catálogo.
+Una `museumEntry` contiene:
 
-El histórico se puede compactar sin perder significado: los planes archivados mantienen sus días y resultados, pero no copias de recursos ni muestras crudas. Una exportación completa puede incluir opcionalmente adjuntos en un paquete, sin convertirlos en campos del JSON principal.
+- Identificador propio y `activityId` cuando existe actividad importada.
+- Snapshot de fecha, distancia, duración, ritmo y métricas esenciales.
+- Título, relato, motivo, etiquetas y fecha de incorporación.
+- `shoeIds` y `personalBestIds` relacionados.
+- Referencias opcionales a adjuntos privados.
 
-## Puntuaciones relativas al objetivo
+El snapshot evita que el recuerdo desaparezca si se desconecta o elimina la fuente externa.
 
-Una puntuación no representa una condición física universal. Cada foto debe indicar `goalId`, dimensiones, versión del algoritmo, fecha, cobertura/confianza y referencias a evidencia. Las dimensiones iniciales previstas son base aeróbica, umbral, velocidad, resistencia específica y tolerancia/continuidad de carga.
+## Marca personal
 
-La media general solo se mostrará cuando haya evidencia mínima suficiente. La tendencia compara fotos compatibles del mismo objetivo y versión. Una simulación lograda valida el objetivo; proponer el siguiente no debe cambiarlo sin confirmación.
+Cada `personalBest` conserva `distanceMeters`, `durationMillis`, `achievedAt`, `evidenceType`, `activityId`, `museumEntryId` y notas. No se sobrescribe una marca anterior: la actual se calcula como el mejor registro válido de la distancia y el resto permanece en la cronología.
 
-## Implementación del contrato
+## Zapatilla
 
-El núcleo Kotlin puro de `kore_android/session-core` es la implementación canónica. Las herramientas externas futuras consumirán exportaciones del mismo contrato, sin convertirse en una dependencia de la aplicación.
+Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, estado, notas y valoraciones. El kilometraje se obtiene de actividades asignadas más un ajuste explícito; no se mantiene un segundo acumulado silencioso.
+
+`usagePhases` describe la intención por intervalo de kilómetros:
+
+```json
+[
+  {"fromKm": 0, "toKm": 200, "uses": ["intervals", "race"]},
+  {"fromKm": 200, "toKm": 700, "uses": ["easy", "long-run"]}
+]
+```
+
+## Límites y seguridad
+
+La sesión no incluye credenciales, tokens, respuestas originales, GPS punto a punto ni muestras de alta frecuencia. Estos elementos viven en almacenamiento seguro o caché/adjuntos privados. Importar valida antes de sustituir la sesión; los campos desconocidos se conservan y las versiones futuras se rechazan.
+
+El núcleo Kotlin migra v1 a v2 añadiendo el nuevo archivo runner y preservando íntegramente los campos anteriores como datos desconocidos recuperables.

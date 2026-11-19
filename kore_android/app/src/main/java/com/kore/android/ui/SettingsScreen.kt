@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Upload
@@ -20,16 +21,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -40,7 +37,6 @@ fun SettingsScreen(
     onImportSession: () -> Unit,
     onExportSession: () -> Unit,
 ) {
-    var autoSync by remember { mutableStateOf(true) }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 18.dp),
@@ -49,33 +45,19 @@ fun SettingsScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 DemoBadge()
-                Text("Ajustes", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("Control local de tu sesión y fuentes de datos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Ajustes", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+                Text("Tu archivo, tus fuentes, tus datos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        item { SectionTitle("Suunto") }
+        item { SectionTitle("Fuentes de actividad") }
         item {
             KoreCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = Color(0xFF2E9D63))
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("Cuenta conectada", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("Última sincronización · Hoy, 08:42", style = MaterialTheme.typography.bodySmall)
-                    }
-                    Text("ACTIVA", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2E9D63))
-                }
-                SettingToggle(
-                    title = "Sincronización automática",
-                    subtitle = "Al abrir Kore y una vez al día",
-                    checked = autoSync,
-                    onCheckedChange = { autoSync = it },
-                )
-                OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
-                    Text("Sincronizar ahora")
-                }
+                SourceRow("Suunto", "Conectada · Hoy, 08:42", true)
+                SourceRow("Garmin", "Disponible en el futuro", false)
+                SourceRow("COROS", "Disponible en el futuro", false)
+                SourceRow("FIT / GPX", "Importación de archivos", false)
                 Text(
-                    "Mockup: no existe conexión ni se usan credenciales reales.",
+                    "Kore convierte todas las fuentes a actividades propias. Ninguna pantalla depende de Suunto.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -84,25 +66,18 @@ fun SettingsScreen(
         item { SectionTitle("Sesión Kore") }
         item {
             KoreCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Storage, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(if (hasRealSession) "Sesión local activa" else "Sesión de demostración", style = MaterialTheme.typography.titleMedium)
-                        Text("Kore Session v1 · almacenamiento privado", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+                SettingsInfoRow(
+                    Icons.Rounded.Storage,
+                    if (hasRealSession) "Archivo local activo" else "Archivo de demostración",
+                    "Kore Session v2 · sin base de datos",
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = onImportSession, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Rounded.Download, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
                         Text("Importar")
                     }
-                    Button(
-                        onClick = onExportSession,
-                        modifier = Modifier.weight(1f),
-                        enabled = hasRealSession,
-                    ) {
+                    Button(onClick = onExportSession, modifier = Modifier.weight(1f), enabled = hasRealSession) {
                         Icon(Icons.Rounded.Upload, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
                         Text("Exportar")
@@ -110,26 +85,17 @@ fun SettingsScreen(
                 }
             }
         }
-        item { SectionTitle("Datos y privacidad") }
+        item { SectionTitle("Privacidad") }
         item {
             KoreCard(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
-                SettingsInfoRow(Icons.Rounded.Lock, "Solo en tu dispositivo", "No hay backend ni cuenta Kore")
-                SettingsInfoRow(Icons.Rounded.Storage, "Recursos de planificación", "Catálogo incluido en la aplicación")
-                SettingsInfoRow(Icons.Rounded.CloudDone, "Suunto", "Fuente remota y detalle recuperable")
-            }
-        }
-        item { SectionTitle("Planificación") }
-        item {
-            KoreCard {
-                SettingsLink("Objetivo actual", "10K · 38:00")
-                SettingsLink("Volumen habitual", "80–90 km/semana")
-                SettingsLink("Días de carrera", "6 días")
-                SettingsLink("Ritmos y zonas", "VO₂max 56 · revisar")
+                SettingsInfoRow(Icons.Rounded.Lock, "Solo en tu dispositivo", "Sin cuenta Kore, backend o nube propia")
+                SettingsInfoRow(Icons.Rounded.Extension, "Credenciales separadas", "Nunca viajan dentro de la sesión")
+                SettingsInfoRow(Icons.Rounded.Storage, "Adjuntos opcionales", "FIT y GPS fuera del JSON principal")
             }
         }
         item {
             Text(
-                "Kore 0.1 · Prototipo visual",
+                "Kore 0.2 · Archivo runner · Prototipo visual",
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -139,23 +105,24 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingToggle(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+private fun SourceRow(name: String, state: String, connected: Boolean) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            if (connected) Icons.Rounded.CloudDone else Icons.Rounded.Extension,
+            contentDescription = null,
+            tint = if (connected) Color(0xFF2E9D63) else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(state, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(if (connected) "ACTIVA" else "", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2E9D63))
     }
 }
 
 @Composable
-private fun SettingsInfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String) {
+private fun SettingsInfoRow(icon: ImageVector, title: String, subtitle: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null)
         Spacer(Modifier.width(12.dp))
@@ -163,13 +130,5 @@ private fun SettingsInfoRow(icon: androidx.compose.ui.graphics.vector.ImageVecto
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    }
-}
-
-@Composable
-private fun SettingsLink(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.SemiBold)
     }
 }

@@ -18,10 +18,10 @@ El APK debug queda en `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Alcance actual
 
-- Mockup navegable con Inicio, Plan, Progreso, Historial y Ajustes.
-- Constructor visual de plan, semana diaria, estado relativo al objetivo, marcas, zapatillas y conexión Suunto simulada.
+- Mockup navegable con Inicio, Museo, Marcas, Zapatillas y Ajustes.
+- Archivo visual de sesiones especiales, PB actuales/históricos, rotación y vida útil del calzado y fuentes simuladas.
 - Datos claramente marcados como demostración; no sincroniza ni modifica entrenamiento real.
-- El núcleo mantiene creación, reapertura, importación y exportación de una sesión Kore v1; el mock expone importación/exportación desde Ajustes.
+- El núcleo mantiene creación, migración, reapertura, importación y exportación de una sesión Kore v2; el mock expone importación/exportación desde Ajustes.
 - Persistencia local atómica y sin base de datos.
 
-Todavía no incluye editor/generador de planes ni conexión Suunto. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.
+Todavía no incluye mutaciones reales de museo/PB/zapatillas ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.

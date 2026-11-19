@@ -1,16 +1,16 @@
 # Kore Android
 
-Kore es una aplicación Android local-first para planificar, seguir y analizar entrenamiento de carrera con datos de Suunto. Esta rama contiene exclusivamente la aplicación móvil y su documentación; no incluye backend, PostgreSQL ni servicios Python.
+Kore es el archivo personal de la vida de un runner: una aplicación Android local-first para conservar zapatillas, sesiones memorables y la evolución completa de marcas personales. Esta rama contiene exclusivamente la aplicación móvil y su documentación; no incluye backend, PostgreSQL ni servicios Python.
 
 ## Estado
 
 La versión actual es un mockup navegable con datos de demostración:
 
-- Inicio con objetivo, sesión del día, carga y recomendación.
-- Plan semanal por días y constructor visual de bloques.
-- Progreso relativo al objetivo, capacidades y marcas.
-- Histórico de bloques, entrenamientos y zapatillas.
-- Ajustes, sesión local y conexión Suunto simulada.
+- Inicio con resumen vital y recuerdos destacados.
+- Museo de sesiones elegidas por el usuario.
+- Marcas personales actuales e históricas.
+- Zapatillas, kilometraje, valoraciones y fases de uso.
+- Ajustes, sesión local y fuentes externas simuladas.
 
 ## Compilar
 

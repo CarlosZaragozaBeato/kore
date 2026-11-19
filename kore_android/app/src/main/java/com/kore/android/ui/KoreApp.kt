@@ -1,10 +1,10 @@
 package com.kore.android.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.Museum
+import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,9 +22,9 @@ import com.kore.android.session.SessionUiState
 
 private enum class Destination(val label: String, val icon: ImageVector) {
     Home("Inicio", Icons.Rounded.Home),
-    Plan("Plan", Icons.Rounded.CalendarMonth),
-    Progress("Progreso", Icons.Rounded.Insights),
-    History("Historial", Icons.Rounded.History),
+    Museum("Museo", Icons.Rounded.Museum),
+    Records("Marcas", Icons.Rounded.EmojiEvents),
+    Shoes("Zapatillas", Icons.AutoMirrored.Rounded.DirectionsRun),
     Settings("Ajustes", Icons.Rounded.Settings),
 }
 
@@ -61,11 +61,10 @@ fun KoreApp(
             Destination.Home -> HomeScreen(
                 profileLabel = profileLabel,
                 padding = padding,
-                onOpenPlan = { destination = Destination.Plan },
             )
-            Destination.Plan -> PlanScreen(padding)
-            Destination.Progress -> ProgressScreen(padding)
-            Destination.History -> HistoryScreen(padding)
+            Destination.Museum -> MuseumScreen(padding)
+            Destination.Records -> RecordsScreen(padding)
+            Destination.Shoes -> ShoesScreen(padding)
             Destination.Settings -> SettingsScreen(
                 padding = padding,
                 hasRealSession = realSession != null,

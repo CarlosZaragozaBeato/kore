@@ -2,13 +2,15 @@
 
 ## Objetivo
 
-Construir una aplicación Android nativa, local-first y sin backend obligatorio. El archivo de sesión Kore es la fuente de verdad personal; los recursos estáticos viajan con la app y Suunto aporta entrenamiento remoto recuperable.
+Construir el archivo personal de un runner como aplicación Android nativa, local-first y sin backend. La sesión Kore conserva zapatillas, museo de sesiones y evolución de marcas. Suunto es solo el primer adaptador externo.
 
 ## Reglas
 
 - La implementación activa vive en `kore_android/`.
 - Usar Kotlin, Jetpack Compose y Material 3. No introducir Java, WebView, React Native ni base de datos.
 - `session-core` es Kotlin puro y contiene contrato JSON, validaciones y mutaciones.
+- El dominio usa `activity`, `sourceRef`, `museumEntry`, `personalBest` y `shoe`; no exponer modelos Suunto fuera de su adaptador.
+- Kore no planifica entrenamientos ni prescribe carga. No reintroducir planes, objetivos deportivos o puntuaciones de forma.
 - `app` contiene UI, almacenamiento Android y adaptadores. No mutar JSON manualmente desde Compose.
 - Preservar campos desconocidos, validar antes de sustituir una sesión y rechazar versiones futuras sin guardar.
 - No incluir credenciales Suunto en el APK o la sesión. Los secretos futuros deberán almacenarse separados y protegidos en el dispositivo.

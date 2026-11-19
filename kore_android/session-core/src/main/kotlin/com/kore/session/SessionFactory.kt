@@ -3,7 +3,6 @@ package com.kore.session
 import java.time.Instant
 import java.util.UUID
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -24,33 +23,13 @@ object SessionFactory {
                             "updatedAt" to JsonPrimitive(timestamp),
                         ),
                     ),
-                    "activeGoal" to JsonNull,
-                    "goalHistory" to JsonArray(emptyList()),
-                    "activePlan" to JsonNull,
-                    "planArchive" to JsonArray(emptyList()),
-                    "workouts" to JsonArray(emptyList()),
-                    "personalRecords" to JsonArray(emptyList()),
+                    "activities" to JsonArray(emptyList()),
+                    "museum" to JsonArray(emptyList()),
+                    "personalBests" to JsonArray(emptyList()),
                     "shoes" to JsonArray(emptyList()),
-                    "diagnostics" to JsonArray(emptyList()),
-                    "ratings" to JsonObject(
+                    "sources" to JsonObject(
                         mapOf(
-                            "current" to JsonNull,
-                            "history" to JsonArray(emptyList()),
-                        ),
-                    ),
-                    "pinnedWorkouts" to JsonArray(emptyList()),
-                    "milestones" to JsonArray(emptyList()),
-                    "sync" to JsonObject(
-                        mapOf(
-                            "suunto" to JsonObject(
-                                mapOf(
-                                    "enabled" to JsonPrimitive(false),
-                                    "userId" to JsonNull,
-                                    "cursor" to JsonNull,
-                                    "lastAttemptAt" to JsonNull,
-                                    "lastSuccessAt" to JsonNull,
-                                ),
-                            ),
+                            "connections" to JsonArray(emptyList()),
                         ),
                     ),
                     "settings" to JsonObject(emptyMap()),

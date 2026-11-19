@@ -2,8 +2,8 @@ package com.kore.session
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -29,16 +29,18 @@ object SessionImporter {
     fun fromObject(root: JsonObject): SessionDocument {
         val version = root["koreSession"]?.jsonPrimitive?.intOrNull
             ?: throw SessionFormatException("koreSession is missing or is not an integer")
-        when {
+        val migrated = when {
             version > CURRENT_SESSION_VERSION -> throw SessionFormatException(
                 "The session uses version $version, which is newer than the app ($CURRENT_SESSION_VERSION)",
             )
+            version == 1 -> migrateV1(root)
             version < CURRENT_SESSION_VERSION -> throw SessionFormatException(
                 "Session version $version has no available migrator",
             )
+            else -> root
         }
-        validateEnvelope(root)
-        return SessionDocument(root)
+        validateEnvelope(migrated)
+        return SessionDocument(migrated)
     }
 
     private fun validateEnvelope(root: JsonObject) {
@@ -52,38 +54,35 @@ object SessionImporter {
                 throw SessionFormatException("The $key field must be a JSON array")
             }
         }
-        validateNullableObject(root, "activeGoal")
-        validateNullableObject(root, "activePlan")
-        val ratings = root["ratings"] as? JsonObject
-            ?: throw SessionFormatException("The ratings field must be a JSON object")
-        validateNullableObject(ratings, "current")
-        if (ratings["history"] !is JsonArray) {
-            throw SessionFormatException("The ratings.history field must be a JSON array")
-        }
-        val sync = root["sync"] as? JsonObject
-            ?: throw SessionFormatException("The sync field must be a JSON object")
-        if (sync["suunto"] !is JsonObject) {
-            throw SessionFormatException("The sync.suunto field must be a JSON object")
+        val sources = root["sources"] as? JsonObject
+            ?: throw SessionFormatException("The sources field must be a JSON object")
+        if (sources["connections"] !is JsonArray) {
+            throw SessionFormatException("The sources.connections field must be a JSON array")
         }
         if (root["settings"] !is JsonObject) {
             throw SessionFormatException("The settings field must be a JSON object")
         }
     }
 
-    private fun validateNullableObject(root: JsonObject, key: String) {
-        if (root[key] != JsonNull && root[key] !is JsonObject) {
-            throw SessionFormatException("The $key field must be a JSON object or null")
-        }
-    }
-
     private val REQUIRED_COLLECTIONS = setOf(
-        "goalHistory",
-        "planArchive",
-        "workouts",
-        "personalRecords",
+        "activities",
+        "museum",
+        "personalBests",
         "shoes",
-        "diagnostics",
-        "pinnedWorkouts",
-        "milestones",
+    )
+
+    private fun migrateV1(root: JsonObject): JsonObject = JsonObject(
+        root.toMutableMap().apply {
+            this["koreSession"] = JsonPrimitive(CURRENT_SESSION_VERSION)
+            this.putIfAbsent("activities", root["workouts"] as? JsonArray ?: JsonArray(emptyList()))
+            this.putIfAbsent("museum", JsonArray(emptyList()))
+            this.putIfAbsent("personalBests", root["personalRecords"] as? JsonArray ?: JsonArray(emptyList()))
+            this.putIfAbsent("shoes", JsonArray(emptyList()))
+            this.putIfAbsent(
+                "sources",
+                JsonObject(mapOf("connections" to JsonArray(emptyList()))),
+            )
+            this.putIfAbsent("settings", JsonObject(emptyMap()))
+        },
     )
 }

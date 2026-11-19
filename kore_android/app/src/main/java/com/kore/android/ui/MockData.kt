@@ -1,32 +1,76 @@
 package com.kore.android.ui
 
-data class MockPlanDay(
-    val day: String,
-    val date: String,
-    val type: String,
+import androidx.compose.ui.graphics.Color
+
+data class MuseumPiece(
     val title: String,
+    val date: String,
     val distance: String,
-    val status: MockDayStatus,
+    val time: String,
+    val story: String,
+    val badge: String,
+    val color: Color,
 )
 
-enum class MockDayStatus { Completed, Today, Planned, Rest }
+data class PersonalBest(
+    val distance: String,
+    val time: String,
+    val pace: String,
+    val date: String,
+    val improvement: String,
+)
+
+data class Shoe(
+    val name: String,
+    val type: String,
+    val acquired: String,
+    val currentKm: Int,
+    val limitKm: Int,
+    val price: String,
+    val use: String,
+    val rating: Double,
+    val color: Color,
+    val status: String = "ACTIVA",
+)
 
 object MockData {
-    val week = listOf(
-        MockPlanDay("L", "16", "RECOVERY", "Rodaje regenerativo", "10 km", MockDayStatus.Completed),
-        MockPlanDay("M", "17", "SERIES", "6 × 1 km", "14 km", MockDayStatus.Completed),
-        MockPlanDay("X", "18", "FÁCIL", "Rodaje + strides", "12 km", MockDayStatus.Today),
-        MockPlanDay("J", "19", "UMBRAL", "3 × 10 min", "15 km", MockDayStatus.Planned),
-        MockPlanDay("V", "20", "DESCANSO", "Descanso", "—", MockDayStatus.Rest),
-        MockPlanDay("S", "21", "FÁCIL", "Rodaje aeróbico", "13 km", MockDayStatus.Planned),
-        MockPlanDay("D", "22", "TIRADA", "Progresiva", "20 km", MockDayStatus.Planned),
+    val museum = listOf(
+        MuseumPiece(
+            "El día que bajé de 39'", "12 MAY 2026", "10,00 km", "38:47",
+            "Una carrera perfecta: paciencia hasta el km 7 y todo lo que quedaba al final.",
+            "PB 10K", Color(0xFFE15B3D),
+        ),
+        MuseumPiece(
+            "Mi primera media", "24 NOV 2024", "21,10 km", "1:34:12",
+            "El principio de todo. Llegué sin saber hasta dónde podía correr.",
+            "PRIMERA VEZ", Color(0xFF356D9A),
+        ),
+        MuseumPiece(
+            "Tirada bajo la tormenta", "18 OCT 2026", "30,40 km", "2:19:08",
+            "La sesión que me enseñó que también podía seguir cuando el día se torcía.",
+            "MEMORABLE", Color(0xFF4B6657),
+        ),
     )
 
-    val fitness = listOf(
-        "Base aeróbica" to 84,
-        "Umbral" to 76,
-        "Velocidad" to 72,
-        "Resistencia específica" to 79,
-        "Continuidad" to 88,
+    val currentBests = listOf(
+        PersonalBest("5K", "18:21", "3:40/km", "28 OCT 2026", "−19 s"),
+        PersonalBest("10K", "38:47", "3:53/km", "12 MAY 2026", "−41 s"),
+        PersonalBest("21,1K", "1:28:42", "4:12/km", "09 MAR 2026", "−3:18"),
+        PersonalBest("42,2K", "3:14:26", "4:36/km", "17 NOV 2025", "PRIMERA"),
+    )
+
+    val shoes = listOf(
+        Shoe(
+            "ASICS Novablast 5", "Entrenamiento diario", "03 FEB 2026", 482, 700,
+            "149,95 €", "Rodajes · Tiradas largas", 4.6, Color(0xFF5A78C7),
+        ),
+        Shoe(
+            "Nike Vaporfly 3", "Competición", "18 MAR 2026", 128, 350,
+            "259,99 €", "Series hasta 200 km · Después rodaje", 4.8, Color(0xFFE15B3D),
+        ),
+        Shoe(
+            "Adidas Adizero SL2", "Mixta", "10 AGO 2025", 611, 650,
+            "104,00 €", "Rodajes suaves", 4.1, Color(0xFF3F8B67), "OBSERVAR",
+        ),
     )
 }

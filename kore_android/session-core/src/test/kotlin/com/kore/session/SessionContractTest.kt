@@ -6,25 +6,23 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 
 class SessionContractTest {
     @Test
-    fun `factory creates a complete empty session without invented fitness`() {
+    fun `factory creates an empty runner archive without provider coupling`() {
         val session = SessionFactory.create("Carlos", Instant.parse("2026-11-18T10:00:00Z"))
 
-        assertEquals(1, session.version)
+        assertEquals(2, session.version)
         assertEquals("Carlos", session.profileLabel)
-        assertNull(session.activeGoalLabel)
-        assertNull(session.activePlanLabel)
-        assertFalse(session.suuntoConnected)
-        assertEquals(0, session.inventory().workouts)
-        assertEquals(0, session.inventory().archivedPlans)
+        assertEquals(0, session.inventory().activities)
+        assertEquals(0, session.inventory().museumEntries)
+        assertEquals(0, session.inventory().personalBests)
+        assertEquals(0, session.inventory().sources)
     }
 
     @Test
@@ -56,6 +54,28 @@ class SessionContractTest {
         assertFailsWith<SessionFormatException> {
             SessionImporter.fromObject(future)
         }
+    }
+
+    @Test
+    fun `version one is migrated without filtering legacy or unknown data`() {
+        val current = SessionFactory.create("Carlos")
+        val legacy = JsonObject(
+            current.root.toMutableMap().apply {
+                this["koreSession"] = JsonPrimitive(1)
+                this.remove("activities")
+                this.remove("museum")
+                this.remove("personalBests")
+                this.remove("sources")
+                this["workouts"] = JsonArray(listOf(JsonObject(mapOf("id" to JsonPrimitive("old")))))
+                this["legacyPlan"] = JsonPrimitive("keep")
+            },
+        )
+
+        val migrated = SessionImporter.fromObject(legacy)
+
+        assertEquals(2, migrated.version)
+        assertEquals(1, migrated.inventory().activities)
+        assertEquals("keep", migrated.root["legacyPlan"]?.jsonPrimitive?.content)
     }
 
     @Test

@@ -24,5 +24,6 @@ El APK debug queda en `app/build/outputs/apk/debug/app-debug.apk`.
 - El núcleo mantiene creación, migración, reapertura, importación y exportación de una sesión Kore v2; el mock expone importación/exportación desde Ajustes.
 - Persistencia local atómica y sin base de datos.
 - Onboarding, creación/reapertura de sesión y alta manual de rutas funcionales.
+- Ciclo de vida funcional de zapatillas: alta, edición, kilometraje, límite, precio, fases de uso, cinco valoraciones y retirada al histórico.
 
-Todavía no incluye mutaciones reales de museo/PB/zapatillas, geometría GPX ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.
+Todavía no incluye mutaciones reales de museo/PB, geometría GPX, asignación automática de kilómetros desde actividades ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.

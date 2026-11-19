@@ -64,7 +64,8 @@ La aplicación funciona sin cuenta Kore, backend o base de datos. La sesión `*.
 1. Contrato de sesión v2 y migración preservadora desde v1.
 2. Mockup nuevo: Inicio, Museo, Rutas, Marcas, Zapatillas y Ajustes.
 3. Creación local de sesión y primer flujo funcional de rutas.
-4. Mutaciones Kotlin para zapatillas, museo y PB con pruebas.
-5. Adaptador canónico y selección de actividades Suunto.
-6. Asignación de zapatillas y cálculo verificable de kilometraje.
-7. Importación/exportación completa y adaptadores adicionales.
+4. Ciclo local de zapatillas con ficha, fases, valoraciones e histórico.
+5. Mutaciones Kotlin para museo y PB con pruebas.
+6. Adaptador canónico y selección de actividades Suunto.
+7. Asignación de zapatillas y cálculo verificable de kilometraje.
+8. Importación/exportación completa y adaptadores adicionales.

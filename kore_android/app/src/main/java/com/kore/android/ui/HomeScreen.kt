@@ -37,10 +37,11 @@ fun HomeScreen(
     padding: PaddingValues,
     demo: Boolean,
     routesCount: Int,
+    shoesCount: Int,
     onOpenSettings: () -> Unit,
 ) {
     if (!demo) {
-        RealHomeScreen(profileLabel, routesCount, padding, onOpenSettings)
+        RealHomeScreen(profileLabel, routesCount, shoesCount, padding, onOpenSettings)
         return
     }
     LazyColumn(
@@ -147,6 +148,7 @@ fun HomeScreen(
 private fun RealHomeScreen(
     profileLabel: String,
     routesCount: Int,
+    shoesCount: Int,
     padding: PaddingValues,
     onOpenSettings: () -> Unit,
 ) {
@@ -173,7 +175,7 @@ private fun RealHomeScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                     DarkMetric("0", "actividades")
                     DarkMetric("0", "marcas")
-                    DarkMetric("0", "zapatillas")
+                    DarkMetric(shoesCount.toString(), "zapatillas")
                 }
             }
         }
@@ -183,7 +185,7 @@ private fun RealHomeScreen(
                 Text("1 · Guarda una ruta", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text("La sección Rutas ya guarda recorridos reales dentro de tu sesión.")
                 Text("2 · Añade tus zapatillas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("Será el siguiente flujo funcional.")
+                Text("Registra su ficha, kilometraje, fases de uso y valoraciones.")
                 Text("3 · Conecta actividades", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text("Después podrás llevar sesiones especiales al Museo y vincular PB.")
             }

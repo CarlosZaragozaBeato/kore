@@ -6,7 +6,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kore.session.SessionDocument
 import com.kore.session.RouteInput
+import com.kore.session.ShoeInput
+import com.kore.session.addShoe
 import com.kore.session.addRoute
+import com.kore.session.retireShoe
+import com.kore.session.updateShoe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,6 +107,31 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
                 } catch (error: Exception) {
                     mutableState.value = SessionUiState.Error(
                         error.message ?: "No se pudo guardar la ruta",
+                        session,
+                    )
+                }
+            }
+        }
+    }
+
+    fun addShoe(input: ShoeInput) = mutateSession("Zapatilla guardada") { addShoe(input) }
+
+    fun updateShoe(id: String, input: ShoeInput) =
+        mutateSession("Zapatilla actualizada") { updateShoe(id, input) }
+
+    fun retireShoe(id: String) = mutateSession("Zapatilla movida al histórico") { retireShoe(id) }
+
+    private fun mutateSession(message: String, mutation: SessionDocument.() -> SessionDocument) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val session = currentSession() ?: return@withLock
+                try {
+                    val updated = session.mutation()
+                    repository.save(updated)
+                    mutableState.value = SessionUiState.Ready(updated, message)
+                } catch (error: Exception) {
+                    mutableState.value = SessionUiState.Error(
+                        error.message ?: "No se pudo actualizar la sesión",
                         session,
                     )
                 }

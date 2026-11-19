@@ -33,6 +33,9 @@ class MainActivity : ComponentActivity() {
                     state = state,
                     onCreateSession = sessionViewModel::create,
                     onAddRoute = sessionViewModel::addRoute,
+                    onAddShoe = sessionViewModel::addShoe,
+                    onUpdateShoe = sessionViewModel::updateShoe,
+                    onRetireShoe = sessionViewModel::retireShoe,
                     onImportSession = {
                         importLauncher.launch(arrayOf("application/json", "text/plain"))
                     },

@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.kore.android.session.SessionUiState
 import com.kore.session.RouteInput
+import com.kore.session.ShoeInput
 import com.kore.session.routes
+import com.kore.session.shoes
 
 private enum class Destination(val label: String, val icon: ImageVector) {
     Home("Inicio", Icons.Rounded.Home),
@@ -39,6 +41,9 @@ fun KoreApp(
     state: SessionUiState,
     onCreateSession: (String) -> Unit,
     onAddRoute: (RouteInput) -> Unit,
+    onAddShoe: (ShoeInput) -> Unit,
+    onUpdateShoe: (String, ShoeInput) -> Unit,
+    onRetireShoe: (String) -> Unit,
     onImportSession: () -> Unit,
     onExportSession: () -> Unit,
 ) {
@@ -85,6 +90,7 @@ fun KoreApp(
                 padding = padding,
                 demo = realSession == null,
                 routesCount = realSession?.inventory()?.routes ?: 0,
+                shoesCount = realSession?.inventory()?.shoes ?: 0,
                 onOpenSettings = { destination = Destination.Settings },
             )
             Destination.Museum -> MuseumScreen(padding, realSession == null)
@@ -94,7 +100,13 @@ fun KoreApp(
                 onAddRoute = onAddRoute,
             )
             Destination.Records -> RecordsScreen(padding, realSession == null)
-            Destination.Shoes -> ShoesScreen(padding, realSession == null)
+            Destination.Shoes -> ShoesScreen(
+                padding = padding,
+                shoes = realSession?.shoes(),
+                onAddShoe = onAddShoe,
+                onUpdateShoe = onUpdateShoe,
+                onRetireShoe = onRetireShoe,
+            )
             Destination.Settings -> SettingsScreen(
                 padding = padding,
                 hasRealSession = realSession != null,

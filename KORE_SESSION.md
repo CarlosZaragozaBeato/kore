@@ -49,16 +49,18 @@ Cada `personalBest` conserva `distanceMeters`, `durationMillis`, `achievedAt`, `
 
 ## Zapatilla
 
-Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, estado, notas y valoraciones. El kilometraje se obtiene de actividades asignadas más un ajuste explícito; no se mantiene un segundo acumulado silencioso.
+Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, estado, notas y valoraciones de comodidad, respuesta, estabilidad, agarre y durabilidad. Mientras no existan actividades asignables, `currentKm` es un valor manual explícito; más adelante será el ajuste inicial más los kilómetros calculados desde actividades.
 
 `usagePhases` describe la intención por intervalo de kilómetros:
 
 ```json
 [
-  {"fromKm": 0, "toKm": 200, "uses": ["intervals", "race"]},
-  {"fromKm": 200, "toKm": 700, "uses": ["easy", "long-run"]}
+  {"fromKm": 0, "toKm": 200, "purpose": "Series y competición"},
+  {"fromKm": 200, "purpose": "Rodajes rápidos"}
 ]
 ```
+
+Retirar una zapatilla cambia su estado y fecha de retirada, pero conserva toda la ficha en el histórico.
 
 ## Ruta
 

@@ -22,6 +22,7 @@ class SessionContractTest {
         assertEquals(0, session.inventory().activities)
         assertEquals(0, session.inventory().museumEntries)
         assertEquals(0, session.inventory().personalBests)
+        assertEquals(0, session.inventory().shoes)
         assertEquals(0, session.inventory().routes)
         assertEquals(0, session.inventory().sources)
     }
@@ -115,5 +116,40 @@ class SessionContractTest {
         assertEquals(74, route.elevationGainMeters)
         assertEquals("keep", updated.root["future"]?.jsonPrimitive?.content)
         assertEquals(1, updated.inventory().routes)
+    }
+
+    @Test
+    fun `shoe lifecycle preserves future fields and moves it to history`() {
+        val original = SessionFactory.create("Carlos")
+        val input = ShoeInput(
+            name = "  Nike Vaporfly 3 ",
+            type = "Competición",
+            acquiredAt = "2026-11-19",
+            currentKm = 12.5,
+            limitKm = 350.0,
+            purchasePrice = 259.99,
+            usagePhases = listOf(
+                ShoeUsagePhase(0.0, 200.0, "Series y competición"),
+                ShoeUsagePhase(200.0, null, "Rodajes rápidos"),
+            ),
+            ratings = ShoeRatings(4.5, 5.0, 4.0, 4.5, 4.0),
+        )
+        val added = original.addShoe(input, "shoe-1", Instant.parse("2026-11-19T10:00:00Z"))
+        val withFutureField = SessionDocument(JsonObject(added.root.toMutableMap().apply {
+            val shoe = (this["shoes"] as JsonArray).single() as JsonObject
+            this["shoes"] = JsonArray(listOf(JsonObject(shoe + ("futureShoeField" to JsonPrimitive("keep")))))
+        }))
+
+        val edited = withFutureField.updateShoe(
+            "shoe-1",
+            input.copy(currentKm = 42.0),
+            Instant.parse("2026-11-20T10:00:00Z"),
+        )
+        val retired = edited.retireShoe("shoe-1", Instant.parse("2026-11-21T10:00:00Z"))
+
+        assertEquals(42.0, retired.shoes().single().currentKm)
+        assertEquals("retired", retired.shoes().single().status)
+        assertEquals("keep", ((retired.root["shoes"] as JsonArray).single() as JsonObject)["futureShoeField"]?.jsonPrimitive?.content)
+        assertEquals(1, retired.inventory().shoes)
     }
 }

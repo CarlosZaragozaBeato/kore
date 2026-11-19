@@ -18,4 +18,4 @@ No existe PostgreSQL ni backend en esta rama. La aplicación usa almacenamiento 
 
 ## Estado actual
 
-El runtime ofrece contrato v2, migración preservadora desde v1, creación/reapertura del archivo y alta persistente de rutas. Museo, PB, zapatillas y proveedores todavía no tienen mutaciones reales.
+El runtime ofrece contrato v2, migración preservadora desde v1, creación/reapertura del archivo, rutas persistentes y ciclo local completo de zapatillas. Museo, PB y proveedores todavía no tienen mutaciones reales; el kilometraje del calzado es manual hasta disponer de actividades asignables.

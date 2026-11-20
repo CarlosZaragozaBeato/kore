@@ -249,4 +249,26 @@ class SessionContractTest {
         assertEquals(10_050.0, activity.distanceMeters)
         assertEquals(145, activity.averageHeartRate)
     }
+
+    @Test
+    fun `shoe phases and notes are optional`() {
+        val updated = SessionFactory.create("Carlos").addShoe(
+            ShoeInput(
+                name = "ASICS Novablast 5",
+                type = "diaria",
+                acquiredAt = "2026-11-20",
+                currentKm = 0.0,
+                limitKm = 700.0,
+                purchasePrice = 149.95,
+                usagePhases = emptyList(),
+                ratings = ShoeRatings(3.0, 3.0, 3.0, 3.0, 3.0),
+                notes = null,
+            ),
+            id = "shoe-without-optional-fields",
+            now = Instant.parse("2026-11-20T12:00:00Z"),
+        )
+
+        assertTrue(updated.shoes().single().usagePhases.isEmpty())
+        assertEquals(null, updated.shoes().single().notes)
+    }
 }

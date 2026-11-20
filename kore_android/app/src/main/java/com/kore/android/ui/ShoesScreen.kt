@@ -267,10 +267,14 @@ private fun ShoeDetailSheet(shoe: RunnerShoe, onDismiss: () -> Unit, onEdit: () 
             }
             item {
                 Label("Fases de uso")
-                shoe.usagePhases.forEach { phase ->
-                    val endKm = phase.toKm
-                    val range = if (endKm == null) "${formatKm(phase.fromKm)} km →" else "${formatKm(phase.fromKm)}–${formatKm(endKm)} km"
-                    UsagePhase(range, phase.purpose, shoe.currentKm >= phase.fromKm)
+                if (shoe.usagePhases.isEmpty()) {
+                    Text("Sin fases de uso definidas", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    shoe.usagePhases.forEach { phase ->
+                        val endKm = phase.toKm
+                        val range = if (endKm == null) "${formatKm(phase.fromKm)} km →" else "${formatKm(phase.fromKm)}–${formatKm(endKm)} km"
+                        UsagePhase(range, phase.purpose, shoe.currentKm >= phase.fromKm)
+                    }
                 }
             }
             item {
@@ -311,7 +315,7 @@ private fun ShoeForm(shoe: RunnerShoe?, onDismiss: () -> Unit, onSave: (ShoeInpu
     var currentKm by remember { mutableStateOf(shoe?.currentKm?.let(::plainNumber).orEmpty()) }
     var limitKm by remember { mutableStateOf(shoe?.limitKm?.let(::plainNumber) ?: "700") }
     var price by remember { mutableStateOf(shoe?.purchasePrice?.let(::plainNumber).orEmpty()) }
-    var boundary by remember { mutableStateOf(shoe?.usagePhases?.firstOrNull()?.toKm?.let(::plainNumber) ?: "200") }
+    var boundary by remember { mutableStateOf(shoe?.usagePhases?.firstOrNull()?.toKm?.let(::plainNumber).orEmpty()) }
     var initialUse by remember { mutableStateOf(shoe?.usagePhases?.firstOrNull()?.purpose.orEmpty()) }
     var laterUse by remember { mutableStateOf(shoe?.usagePhases?.getOrNull(1)?.purpose.orEmpty()) }
     var notes by remember { mutableStateOf(shoe?.notes.orEmpty()) }
@@ -324,10 +328,13 @@ private fun ShoeForm(shoe: RunnerShoe?, onDismiss: () -> Unit, onSave: (ShoeInpu
     val limitValue = limitKm.decimalOrNull()
     val priceValue = price.decimalOrNull()
     val boundaryValue = boundary.decimalOrNull()
+    val noPhases = initialUse.isBlank() && boundary.isBlank() && laterUse.isBlank()
+    val singlePhase = initialUse.isNotBlank() && boundary.isBlank() && laterUse.isBlank()
+    val twoPhases = initialUse.isNotBlank() && boundaryValue != null && boundaryValue > 0 && laterUse.isNotBlank()
+    val phasesValid = noPhases || singlePhase || twoPhases
     val valid = name.isNotBlank() && acquiredAt.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) &&
         currentValue != null && currentValue >= 0 && limitValue != null && limitValue > 0 &&
-        priceValue != null && priceValue >= 0 && boundaryValue != null && boundaryValue > 0 &&
-        initialUse.isNotBlank() && laterUse.isNotBlank()
+        priceValue != null && priceValue >= 0 && phasesValid
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         LazyColumn(
@@ -356,10 +363,11 @@ private fun ShoeForm(shoe: RunnerShoe?, onDismiss: () -> Unit, onSave: (ShoeInpu
             }
             item { OutlinedTextField(price, { price = it }, label = { Text("Precio de compra €") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
             item {
-                Label("Fases de uso")
-                OutlinedTextField(initialUse, { initialUse = it }, label = { Text("Uso inicial") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(boundary, { boundary = it }, label = { Text("Cambiar uso al llegar al km") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                OutlinedTextField(laterUse, { laterUse = it }, label = { Text("Uso posterior") }, modifier = Modifier.fillMaxWidth())
+                Label("Fases de uso · opcional")
+                Text("Déjalas vacías, define un único uso o completa las tres para cambiarlo por kilometraje.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(initialUse, { initialUse = it }, label = { Text("Uso inicial opcional") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(boundary, { boundary = it }, label = { Text("Cambiar uso al llegar al km · opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(laterUse, { laterUse = it }, label = { Text("Uso posterior opcional") }, modifier = Modifier.fillMaxWidth())
             }
             item {
                 Label("Valoración")
@@ -369,7 +377,7 @@ private fun ShoeForm(shoe: RunnerShoe?, onDismiss: () -> Unit, onSave: (ShoeInpu
                 RatingSlider("Agarre", grip) { grip = it }
                 RatingSlider("Durabilidad", durability) { durability = it }
             }
-            item { OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2) }
+            item { OutlinedTextField(notes, { notes = it }, label = { Text("Notas · opcional") }, modifier = Modifier.fillMaxWidth(), minLines = 2) }
             item {
                 Button(
                     onClick = {
@@ -380,10 +388,14 @@ private fun ShoeForm(shoe: RunnerShoe?, onDismiss: () -> Unit, onSave: (ShoeInpu
                             currentKm = currentValue!!,
                             limitKm = limitValue!!,
                             purchasePrice = priceValue!!,
-                            usagePhases = listOf(
-                                ShoeUsagePhase(0.0, boundaryValue, initialUse),
-                                ShoeUsagePhase(boundaryValue!!, null, laterUse),
-                            ),
+                            usagePhases = when {
+                                noPhases -> emptyList()
+                                singlePhase -> listOf(ShoeUsagePhase(0.0, null, initialUse))
+                                else -> listOf(
+                                    ShoeUsagePhase(0.0, boundaryValue, initialUse),
+                                    ShoeUsagePhase(boundaryValue!!, null, laterUse),
+                                )
+                            },
                             ratings = ShoeRatings(comfort.toDouble(), response.toDouble(), stability.toDouble(), grip.toDouble(), durability.toDouble()),
                             notes = notes.ifBlank { null },
                         ))

@@ -133,7 +133,6 @@ private fun validateShoe(input: ShoeInput) {
     require(input.limitKm > 0) { "Distance limit must be positive" }
     require(input.purchasePrice >= 0) { "Purchase price cannot be negative" }
     require(input.currency.trim().isNotEmpty()) { "Currency is required" }
-    require(input.usagePhases.isNotEmpty()) { "At least one usage phase is required" }
     input.usagePhases.forEach { phase ->
         require(phase.fromKm >= 0) { "Usage phase start cannot be negative" }
         require(phase.toKm == null || phase.toKm > phase.fromKm) { "Usage phase range is invalid" }

@@ -61,7 +61,7 @@ Los tipos de evidencia admitidos son `official_race`, `training`, `estimate` y `
 
 Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, estado, notas y valoraciones de comodidad, respuesta, estabilidad, agarre y durabilidad. Mientras no existan actividades asignables, `currentKm` es un valor manual explícito; más adelante será el ajuste inicial más los kilómetros calculados desde actividades.
 
-`usagePhases` describe la intención por intervalo de kilómetros:
+`usagePhases` es opcional y describe la intención por intervalo de kilómetros cuando el usuario quiere planificar cambios de uso:
 
 ```json
 [
@@ -71,6 +71,8 @@ Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, esta
 ```
 
 Retirar una zapatilla cambia su estado y fecha de retirada, pero conserva toda la ficha en el histórico.
+
+Las notas también son opcionales. Una ficha mínima solo necesita identidad, tipo, fecha de alta, kilometraje, límite, precio y valoraciones.
 
 ## Ruta
 

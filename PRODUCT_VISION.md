@@ -66,7 +66,7 @@ La aplicación funciona sin cuenta Kore, backend o base de datos. La sesión `*.
 3. Creación local de sesión y primer flujo funcional de rutas.
 4. Ciclo local de zapatillas con ficha, fases, valoraciones e histórico.
 5. Actividades canónicas y selección manual para el Museo.
-6. Marcas personales actuales e históricas con evidencia.
+6. Marcas personales actuales e históricas con evidencia. *(Implementado)*
 7. Adaptador Suunto hacia el modelo canónico.
 8. Asignación de zapatillas y cálculo verificable de kilometraje.
 9. Importación/exportación completa y adaptadores adicionales.

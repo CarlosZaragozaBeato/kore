@@ -13,7 +13,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "0.5.0-museum"
+        versionName = "0.6.0-records"
     }
 
     buildFeatures {

@@ -51,6 +51,8 @@ Kore impide crear dos piezas para la misma actividad. Registrar una actividad no
 
 Cada `personalBest` conserva `distanceMeters`, `durationMillis`, `achievedAt`, `evidenceType`, `activityId`, `museumEntryId` y notas. No se sobrescribe una marca anterior: la actual se calcula como el mejor registro válido de la distancia y el resto permanece en la cronología.
 
+Los tipos de evidencia admitidos son `official_race`, `training`, `estimate` y `manual`. Si se vinculan actividad y pieza del Museo, ambas deben representar la misma sesión. La pieza conserva también el identificador de la marca para mantener la relación en ambos sentidos.
+
 ## Zapatilla
 
 Cada `shoe` conserva identidad, `acquiredAt`, precio/moneda, tipo, límite, estado, notas y valoraciones de comodidad, respuesta, estabilidad, agarre y durabilidad. Mientras no existan actividades asignables, `currentKm` es un valor manual explícito; más adelante será el ajuste inicial más los kilómetros calculados desde actividades.

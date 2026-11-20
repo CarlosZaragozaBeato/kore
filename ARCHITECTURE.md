@@ -18,4 +18,4 @@ No existe PostgreSQL ni backend en esta rama. La aplicación usa almacenamiento 
 
 ## Estado actual
 
-El runtime ofrece contrato v2, migración preservadora desde v1, creación/reapertura, rutas, ciclo de zapatillas, actividades canónicas manuales y selección persistente para el Museo. PB y proveedores todavía no tienen mutaciones reales; el kilometraje del calzado sigue manual hasta definir la asignación verificable de actividades.
+El runtime ofrece contrato v2, migración preservadora desde v1, creación/reapertura, rutas, ciclo de zapatillas, actividades canónicas, Museo y cronología de marcas con evidencia. Los proveedores todavía no tienen adaptadores; el kilometraje del calzado sigue manual hasta definir la asignación verificable de actividades.

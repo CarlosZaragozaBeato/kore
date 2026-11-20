@@ -40,10 +40,11 @@ fun HomeScreen(
     shoesCount: Int,
     activitiesCount: Int,
     museumCount: Int,
+    recordsCount: Int,
     onOpenSettings: () -> Unit,
 ) {
     if (!demo) {
-        RealHomeScreen(profileLabel, routesCount, shoesCount, activitiesCount, museumCount, padding, onOpenSettings)
+        RealHomeScreen(profileLabel, routesCount, shoesCount, activitiesCount, museumCount, recordsCount, padding, onOpenSettings)
         return
     }
     LazyColumn(
@@ -153,6 +154,7 @@ private fun RealHomeScreen(
     shoesCount: Int,
     activitiesCount: Int,
     museumCount: Int,
+    recordsCount: Int,
     padding: PaddingValues,
     onOpenSettings: () -> Unit,
 ) {
@@ -178,9 +180,10 @@ private fun RealHomeScreen(
                 Text("$activitiesCount actividades", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.inverseOnSurface)
                 Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                     DarkMetric(museumCount.toString(), "museo")
-                    DarkMetric(routesCount.toString(), "rutas")
+                    DarkMetric(recordsCount.toString(), "marcas")
                     DarkMetric(shoesCount.toString(), "zapatillas")
                 }
+                Text("$routesCount rutas guardadas", color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .62f))
             }
         }
         item { SectionTitle("Empieza tu historia") }

@@ -183,4 +183,43 @@ class SessionContractTest {
             )
         }
     }
+
+    @Test
+    fun `personal best history derives the current record and links museum evidence`() {
+        val session = SessionFactory.create("Carlos")
+            .addActivity(
+                ActivityInput("Carrera 10K", "running", "2026-11-20", 2_340, 10_000.0),
+                id = "activity-pb",
+                now = Instant.parse("2026-11-20T08:00:00Z"),
+            )
+            .addMuseumEntry(
+                MuseumEntryInput("activity-pb", "Mi mejor 10K", "PB", "Un día redondo", listOf("10k")),
+                id = "museum-pb",
+                now = Instant.parse("2026-11-20T09:00:00Z"),
+            )
+            .addPersonalBest(
+                PersonalBestInput(10_000.0, 2_400_000, "2025-10-01", "official_race"),
+                id = "pb-old",
+                now = Instant.parse("2026-11-20T10:00:00Z"),
+            )
+
+        val updated = session.addPersonalBest(
+            PersonalBestInput(
+                distanceMeters = 10_000.0,
+                durationMillis = 2_340_000,
+                achievedAt = "2026-11-20",
+                evidenceType = "official_race",
+                activityId = "activity-pb",
+                museumEntryId = "museum-pb",
+            ),
+            id = "pb-current",
+            now = Instant.parse("2026-11-20T11:00:00Z"),
+        )
+
+        assertEquals(2, updated.inventory().personalBests)
+        assertEquals("pb-current", updated.currentPersonalBests().single().id)
+        assertEquals("museum-pb", updated.currentPersonalBests().single().museumEntryId)
+        val museumJson = (updated.root["museum"] as JsonArray).single() as JsonObject
+        assertEquals("pb-current", (museumJson["personalBestIds"] as JsonArray).single().jsonPrimitive.content)
+    }
 }

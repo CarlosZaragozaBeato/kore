@@ -23,10 +23,12 @@ import com.kore.android.session.SessionUiState
 import com.kore.session.RouteInput
 import com.kore.session.ActivityInput
 import com.kore.session.MuseumEntryInput
+import com.kore.session.PersonalBestInput
 import com.kore.session.ShoeInput
 import com.kore.session.routes
 import com.kore.session.activities
 import com.kore.session.museumEntries
+import com.kore.session.personalBests
 import com.kore.session.shoes
 
 private enum class Destination(val label: String, val icon: ImageVector) {
@@ -50,6 +52,7 @@ fun KoreApp(
     onRetireShoe: (String) -> Unit,
     onAddActivity: (ActivityInput) -> Unit,
     onAddMuseumEntry: (MuseumEntryInput) -> Unit,
+    onAddPersonalBest: (PersonalBestInput) -> Unit,
     onImportSession: () -> Unit,
     onExportSession: () -> Unit,
 ) {
@@ -99,6 +102,7 @@ fun KoreApp(
                 shoesCount = realSession?.inventory()?.shoes ?: 0,
                 activitiesCount = realSession?.inventory()?.activities ?: 0,
                 museumCount = realSession?.inventory()?.museumEntries ?: 0,
+                recordsCount = realSession?.inventory()?.personalBests ?: 0,
                 onOpenSettings = { destination = Destination.Settings },
             )
             Destination.Museum -> MuseumScreen(
@@ -114,7 +118,13 @@ fun KoreApp(
                 routes = realSession?.routes(),
                 onAddRoute = onAddRoute,
             )
-            Destination.Records -> RecordsScreen(padding, realSession == null)
+            Destination.Records -> RecordsScreen(
+                padding = padding,
+                records = realSession?.personalBests(),
+                activities = realSession?.activities().orEmpty(),
+                museumEntries = realSession?.museumEntries().orEmpty(),
+                onAddPersonalBest = onAddPersonalBest,
+            )
             Destination.Shoes -> ShoesScreen(
                 padding = padding,
                 shoes = realSession?.shoes(),

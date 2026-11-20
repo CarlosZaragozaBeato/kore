@@ -26,5 +26,6 @@ El APK debug queda en `app/build/outputs/apk/debug/app-debug.apk`.
 - Onboarding, creación/reapertura de sesión y alta manual de rutas funcionales.
 - Ciclo de vida funcional de zapatillas: alta, edición, kilometraje, límite, precio, fases de uso, cinco valoraciones y retirada al histórico.
 - Registro de actividades canónicas y selección explícita para crear piezas de Museo con snapshot, relato, etiquetas y zapatilla vinculada.
+- Marcas personales actuales e históricas con ritmo derivado, tipo de evidencia y vínculos a actividad/Museo.
 
-Todavía no incluye PB reales, geometría GPX, asignación automática de kilómetros desde actividades ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.
+Todavía no incluye geometría GPX, asignación automática de kilómetros desde actividades ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.

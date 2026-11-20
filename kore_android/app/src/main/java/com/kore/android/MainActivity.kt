@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
                     onRetireShoe = sessionViewModel::retireShoe,
                     onAddActivity = sessionViewModel::addActivity,
                     onAddMuseumEntry = sessionViewModel::addMuseumEntry,
+                    onAddPersonalBest = sessionViewModel::addPersonalBest,
                     onImportSession = {
                         importLauncher.launch(arrayOf("application/json", "text/plain"))
                     },

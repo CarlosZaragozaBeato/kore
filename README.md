@@ -13,7 +13,7 @@ La versión actual es un mockup navegable con datos de demostración:
 - Zapatillas, kilometraje, valoraciones y fases de uso.
 - Ajustes, sesión local y fuentes externas simuladas.
 
-La creación del archivo, las rutas, el ciclo de zapatillas y el flujo de actividades hacia el Museo ya son funcionales. Marcas mantiene una demostración visual o estado vacío hasta su siguiente corte.
+La creación del archivo, las rutas, el ciclo de zapatillas, el flujo hacia el Museo y las marcas personales con cronología ya son funcionales.
 
 ## Compilar
 

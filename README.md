@@ -15,6 +15,8 @@ La versión actual es un mockup navegable con datos de demostración:
 
 La creación del archivo, las rutas, el ciclo de zapatillas, el flujo hacia el Museo y las marcas personales con cronología ya son funcionales.
 
+Suunto puede configurarse localmente desde Ajustes. Las credenciales se cifran fuera de la sesión y la sincronización convierte los resúmenes remotos en actividades Kore idempotentes.
+
 ## Compilar
 
 ```bash

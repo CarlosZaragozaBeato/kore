@@ -17,12 +17,19 @@ import com.kore.session.addMuseumEntry
 import com.kore.session.addPersonalBest
 import com.kore.session.retireShoe
 import com.kore.session.updateShoe
+import com.kore.session.SuuntoWorkoutAdapter
+import com.kore.session.importActivities
+import com.kore.android.suunto.SecureSuuntoStore
+import com.kore.android.suunto.SuuntoApiClient
+import com.kore.android.suunto.SuuntoCredentials
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 sealed interface SessionUiState {
     data object Loading : SessionUiState
@@ -31,12 +38,23 @@ sealed interface SessionUiState {
     data class Error(val message: String, val session: SessionDocument? = null) : SessionUiState
 }
 
+data class SuuntoUiState(
+    val configured: Boolean,
+    val syncing: Boolean = false,
+    val message: String? = null,
+    val lastWorkoutCount: Int? = null,
+)
+
 class SessionViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = AndroidSessionRepository(application)
     private val mutableState = MutableStateFlow<SessionUiState>(SessionUiState.Loading)
     private val mutationMutex = Mutex()
+    private val suuntoStore = SecureSuuntoStore(application)
+    private val suuntoClient = SuuntoApiClient(suuntoStore)
+    private val mutableSuuntoState = MutableStateFlow(SuuntoUiState(suuntoStore.isConfigured()))
 
     val state: StateFlow<SessionUiState> = mutableState.asStateFlow()
+    val suuntoState: StateFlow<SuuntoUiState> = mutableSuuntoState.asStateFlow()
 
     init {
         refresh()
@@ -135,6 +153,57 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
 
     fun addPersonalBest(input: PersonalBestInput) =
         mutateSession("Marca personal guardada") { addPersonalBest(input) }
+
+    fun saveSuuntoCredentials(credentials: SuuntoCredentials) {
+        viewModelScope.launch {
+            runCatching { withContext(Dispatchers.IO) { suuntoStore.save(credentials) } }
+                .onSuccess { mutableSuuntoState.value = SuuntoUiState(true, message = "Credenciales cifradas en el dispositivo") }
+                .onFailure { error ->
+                    mutableSuuntoState.value = SuuntoUiState(
+                        configured = suuntoStore.isConfigured(),
+                        message = error.message ?: "No se pudo configurar Suunto",
+                    )
+                }
+        }
+    }
+
+    fun disconnectSuunto() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { suuntoStore.clear() }
+            mutableSuuntoState.value = SuuntoUiState(false, message = "Credenciales de Suunto eliminadas")
+        }
+    }
+
+    fun synchronizeSuunto(days: Int = 30) {
+        val session = currentSession() ?: return
+        if (mutableSuuntoState.value.syncing) return
+        viewModelScope.launch {
+            mutableSuuntoState.value = mutableSuuntoState.value.copy(syncing = true, message = "Sincronizando…")
+            runCatching {
+                val result = withContext(Dispatchers.IO) {
+                    suuntoClient.synchronize(suuntoStore.load(), days)
+                }
+                val imports = result.pages.flatMap { page -> SuuntoWorkoutAdapter.parsePage(page) }
+                val updated = mutationMutex.withLock {
+                    val latest = currentSession() ?: session
+                    latest.importActivities(imports).also { repository.save(it) }
+                }
+                updated to result.workoutCount
+            }.onSuccess { (updated, count) ->
+                mutableState.value = SessionUiState.Ready(updated, "Suunto sincronizado")
+                mutableSuuntoState.value = SuuntoUiState(
+                    configured = true,
+                    message = "$count entrenamientos procesados",
+                    lastWorkoutCount = count,
+                )
+            }.onFailure { error ->
+                mutableSuuntoState.value = SuuntoUiState(
+                    configured = suuntoStore.isConfigured(),
+                    message = error.message ?: "No se pudo sincronizar Suunto",
+                )
+            }
+        }
+    }
 
     private fun mutateSession(message: String, mutation: SessionDocument.() -> SessionDocument) {
         viewModelScope.launch {

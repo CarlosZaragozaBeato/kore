@@ -27,5 +27,8 @@ El APK debug queda en `app/build/outputs/apk/debug/app-debug.apk`.
 - Ciclo de vida funcional de zapatillas: alta, edición, kilometraje, límite, precio, fases de uso, cinco valoraciones y retirada al histórico.
 - Registro de actividades canónicas y selección explícita para crear piezas de Museo con snapshot, relato, etiquetas y zapatilla vinculada.
 - Marcas personales actuales e históricas con ritmo derivado, tipo de evidencia y vínculos a actividad/Museo.
+- Configuración Suunto cifrada con Android Keystore, renovación segura del token y sincronización paginada de resúmenes hacia actividades canónicas.
 
-Todavía no incluye geometría GPX, asignación automática de kilómetros desde actividades ni adaptadores de proveedores. Las credenciales nunca se añadirán al archivo de sesión ni a recursos compilados del APK.
+Todavía no incluye FIT, vueltas, muestras, geometría GPS/GPX ni asignación automática de kilómetros a zapatillas. Las credenciales nunca se añaden al archivo de sesión ni a recursos compilados del APK.
+
+La conexión directa es para una instalación personal con credenciales propias ya autorizadas. No debe distribuirse un `client_secret` compartido dentro de una aplicación pública.

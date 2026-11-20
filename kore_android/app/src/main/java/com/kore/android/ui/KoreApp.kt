@@ -20,6 +20,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.kore.android.session.SessionUiState
+import com.kore.android.session.SuuntoUiState
+import com.kore.android.suunto.SuuntoCredentials
 import com.kore.session.RouteInput
 import com.kore.session.ActivityInput
 import com.kore.session.MuseumEntryInput
@@ -45,6 +47,7 @@ private val bottomDestinations = Destination.entries.filter { it != Destination.
 @Composable
 fun KoreApp(
     state: SessionUiState,
+    suuntoState: SuuntoUiState,
     onCreateSession: (String) -> Unit,
     onAddRoute: (RouteInput) -> Unit,
     onAddShoe: (ShoeInput) -> Unit,
@@ -53,6 +56,9 @@ fun KoreApp(
     onAddActivity: (ActivityInput) -> Unit,
     onAddMuseumEntry: (MuseumEntryInput) -> Unit,
     onAddPersonalBest: (PersonalBestInput) -> Unit,
+    onSaveSuuntoCredentials: (SuuntoCredentials) -> Unit,
+    onSynchronizeSuunto: (Int) -> Unit,
+    onDisconnectSuunto: () -> Unit,
     onImportSession: () -> Unit,
     onExportSession: () -> Unit,
 ) {
@@ -142,6 +148,10 @@ fun KoreApp(
                     demoMode = false
                     destination = Destination.Home
                 },
+                suuntoState = suuntoState,
+                onSaveSuuntoCredentials = onSaveSuuntoCredentials,
+                onSynchronizeSuunto = onSynchronizeSuunto,
+                onDisconnectSuunto = onDisconnectSuunto,
             )
         }
     }

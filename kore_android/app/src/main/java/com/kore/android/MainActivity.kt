@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val state by sessionViewModel.state.collectAsStateWithLifecycle()
+            val suuntoState by sessionViewModel.suuntoState.collectAsStateWithLifecycle()
             val importLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.OpenDocument(),
             ) { uri -> uri?.let(sessionViewModel::importSession) }
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
             KoreTheme {
                 KoreApp(
                     state = state,
+                    suuntoState = suuntoState,
                     onCreateSession = sessionViewModel::create,
                     onAddRoute = sessionViewModel::addRoute,
                     onAddShoe = sessionViewModel::addShoe,
@@ -39,6 +41,9 @@ class MainActivity : ComponentActivity() {
                     onAddActivity = sessionViewModel::addActivity,
                     onAddMuseumEntry = sessionViewModel::addMuseumEntry,
                     onAddPersonalBest = sessionViewModel::addPersonalBest,
+                    onSaveSuuntoCredentials = sessionViewModel::saveSuuntoCredentials,
+                    onSynchronizeSuunto = sessionViewModel::synchronizeSuunto,
+                    onDisconnectSuunto = sessionViewModel::disconnectSuunto,
                     onImportSession = {
                         importLauncher.launch(arrayOf("application/json", "text/plain"))
                     },

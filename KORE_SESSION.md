@@ -31,7 +31,11 @@ Una `activity` utiliza campos Kore estables: `id`, `sport`, `startedAt`, `durati
 
 El adaptador convierte cada proveedor a este idioma. Ninguna pantalla depende de nombres de campos Suunto.
 
+Las actividades de proveedor son idempotentes por `sourceRef.provider + sourceRef.externalId`. Una sincronización posterior actualiza sus campos conocidos, conserva campos futuros y no duplica el entrenamiento. Las credenciales y tokens nunca forman parte de `activities`, `sources` ni del archivo exportado.
+
 La primera implementación permite registrar manualmente `title`, `sport`, fecha, duración, distancia, desnivel y frecuencia cardiaca media. Al no solicitar hora, conserva esa captura como fecha de calendario y usa mediodía UTC como `startedAt` técnico; un proveedor real aportará el instante exacto.
+
+El adaptador Suunto resume `workoutKey`, actividad, tiempos, distancia, ascenso y frecuencia cardiaca media. Conserva el instante UTC exacto y calcula la fecha local con `timeOffsetInMinutes`. Los FIT, vueltas, muestras y GPS quedan fuera de esta primera sincronización.
 
 ## Pieza de museo
 

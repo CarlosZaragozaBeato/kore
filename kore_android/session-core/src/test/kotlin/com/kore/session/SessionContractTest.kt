@@ -222,4 +222,31 @@ class SessionContractTest {
         val museumJson = (updated.root["museum"] as JsonArray).single() as JsonObject
         assertEquals("pb-current", (museumJson["personalBestIds"] as JsonArray).single().jsonPrimitive.content)
     }
+
+    @Test
+    fun `suunto adapter imports workout pages idempotently`() {
+        val page = """
+            {"error":null,"payload":[{
+              "workoutKey":"67604889401b942184624cb8",
+              "activityId":1,
+              "startTime":1795161600000,
+              "totalTime":3600,
+              "totalDistance":10000.0,
+              "totalAscent":120.5,
+              "timeOffsetInMinutes":60,
+              "hrdata":{"workoutAvgHR":145}
+            }]}
+        """.trimIndent()
+        val imports = SuuntoWorkoutAdapter.parsePage(page, Instant.parse("2026-11-20T08:00:00Z"))
+        val once = SessionFactory.create("Carlos").importActivities(imports)
+        val twice = once.importActivities(imports.map { it.copy(distanceMeters = 10_050.0) })
+
+        assertEquals(1, twice.inventory().activities)
+        val activity = twice.activities().single()
+        assertEquals("suunto", activity.sourceType)
+        assertEquals("67604889401b942184624cb8", activity.externalId)
+        assertEquals("running", activity.sport)
+        assertEquals(10_050.0, activity.distanceMeters)
+        assertEquals(145, activity.averageHeartRate)
+    }
 }

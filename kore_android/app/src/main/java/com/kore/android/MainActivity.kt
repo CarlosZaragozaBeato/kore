@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
                     onAddShoe = sessionViewModel::addShoe,
                     onUpdateShoe = sessionViewModel::updateShoe,
                     onRetireShoe = sessionViewModel::retireShoe,
+                    onAddActivity = sessionViewModel::addActivity,
+                    onAddMuseumEntry = sessionViewModel::addMuseumEntry,
                     onImportSession = {
                         importLauncher.launch(arrayOf("application/json", "text/plain"))
                     },

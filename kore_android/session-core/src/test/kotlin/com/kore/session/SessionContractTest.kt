@@ -152,4 +152,35 @@ class SessionContractTest {
         assertEquals("keep", ((retired.root["shoes"] as JsonArray).single() as JsonObject)["futureShoeField"]?.jsonPrimitive?.content)
         assertEquals(1, retired.inventory().shoes)
     }
+
+    @Test
+    fun `manual activity can become a museum snapshot`() {
+        val session = SessionFactory.create("Carlos")
+        val withActivity = session.addActivity(
+            ActivityInput("Test 10K", "Running", "2026-11-20", 2_340, 10_000.0, 85, 168),
+            id = "activity-1",
+            now = Instant.parse("2026-11-20T10:00:00Z"),
+        )
+        val withMuseumEntry = withActivity.addMuseumEntry(
+            MuseumEntryInput(
+                activityId = "activity-1",
+                title = "El test que salió bien",
+                motive = "Memorable",
+                story = "Ritmo estable y final fuerte.",
+                tags = listOf("test", "10k", "test"),
+            ),
+            id = "museum-1",
+            now = Instant.parse("2026-11-20T11:00:00Z"),
+        )
+
+        assertEquals(1, withMuseumEntry.inventory().activities)
+        assertEquals(1, withMuseumEntry.inventory().museumEntries)
+        assertEquals(10_000.0, withMuseumEntry.museumEntries().single().distanceMeters)
+        assertEquals(listOf("test", "10k"), withMuseumEntry.museumEntries().single().tags)
+        assertFailsWith<IllegalArgumentException> {
+            withMuseumEntry.addMuseumEntry(
+                MuseumEntryInput("activity-1", "Duplicada", "PB", "No debe entrar", emptyList()),
+            )
+        }
+    }
 }

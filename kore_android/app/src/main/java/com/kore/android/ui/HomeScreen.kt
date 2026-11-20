@@ -38,10 +38,12 @@ fun HomeScreen(
     demo: Boolean,
     routesCount: Int,
     shoesCount: Int,
+    activitiesCount: Int,
+    museumCount: Int,
     onOpenSettings: () -> Unit,
 ) {
     if (!demo) {
-        RealHomeScreen(profileLabel, routesCount, shoesCount, padding, onOpenSettings)
+        RealHomeScreen(profileLabel, routesCount, shoesCount, activitiesCount, museumCount, padding, onOpenSettings)
         return
     }
     LazyColumn(
@@ -149,6 +151,8 @@ private fun RealHomeScreen(
     profileLabel: String,
     routesCount: Int,
     shoesCount: Int,
+    activitiesCount: Int,
+    museumCount: Int,
     padding: PaddingValues,
     onOpenSettings: () -> Unit,
 ) {
@@ -171,10 +175,10 @@ private fun RealHomeScreen(
         item {
             KoreCard(containerColor = MaterialTheme.colorScheme.inverseSurface) {
                 LabelDark("TU ARCHIVO KORE")
-                Text("$routesCount rutas", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.inverseOnSurface)
+                Text("$activitiesCount actividades", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.inverseOnSurface)
                 Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
-                    DarkMetric("0", "actividades")
-                    DarkMetric("0", "marcas")
+                    DarkMetric(museumCount.toString(), "museo")
+                    DarkMetric(routesCount.toString(), "rutas")
                     DarkMetric(shoesCount.toString(), "zapatillas")
                 }
             }

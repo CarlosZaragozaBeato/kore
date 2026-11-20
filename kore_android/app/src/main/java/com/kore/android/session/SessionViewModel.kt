@@ -6,9 +6,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kore.session.SessionDocument
 import com.kore.session.RouteInput
+import com.kore.session.ActivityInput
+import com.kore.session.MuseumEntryInput
 import com.kore.session.ShoeInput
 import com.kore.session.addShoe
 import com.kore.session.addRoute
+import com.kore.session.addActivity
+import com.kore.session.addMuseumEntry
 import com.kore.session.retireShoe
 import com.kore.session.updateShoe
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -120,6 +124,12 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
         mutateSession("Zapatilla actualizada") { updateShoe(id, input) }
 
     fun retireShoe(id: String) = mutateSession("Zapatilla movida al histórico") { retireShoe(id) }
+
+    fun addActivity(input: ActivityInput) =
+        mutateSession("Actividad guardada") { addActivity(input) }
+
+    fun addMuseumEntry(input: MuseumEntryInput) =
+        mutateSession("Sesión incorporada al Museo") { addMuseumEntry(input) }
 
     private fun mutateSession(message: String, mutation: SessionDocument.() -> SessionDocument) {
         viewModelScope.launch {

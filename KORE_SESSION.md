@@ -31,6 +31,8 @@ Una `activity` utiliza campos Kore estables: `id`, `sport`, `startedAt`, `durati
 
 El adaptador convierte cada proveedor a este idioma. Ninguna pantalla depende de nombres de campos Suunto.
 
+La primera implementación permite registrar manualmente `title`, `sport`, fecha, duración, distancia, desnivel y frecuencia cardiaca media. Al no solicitar hora, conserva esa captura como fecha de calendario y usa mediodía UTC como `startedAt` técnico; un proveedor real aportará el instante exacto.
+
 ## Pieza de museo
 
 Una `museumEntry` contiene:
@@ -42,6 +44,8 @@ Una `museumEntry` contiene:
 - Referencias opcionales a adjuntos privados.
 
 El snapshot evita que el recuerdo desaparezca si se desconecta o elimina la fuente externa.
+
+Kore impide crear dos piezas para la misma actividad. Registrar una actividad no la incorpora automáticamente: siempre exige una elección y un relato explícitos.
 
 ## Marca personal
 
